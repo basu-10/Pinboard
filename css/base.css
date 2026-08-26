@@ -1,0 +1,121 @@
+:root {
+  /* --- single neutral base, one accent hue expressed via color-mix --- */
+  --base: #e8e9ee;
+  --base-2: #f1f2f6;
+  --base-3: #dedfe6;
+  --ink: #2b2e36;
+  --ink-soft: #6c7079;
+  --hairline: rgba(0, 0, 0, 0.08);
+  --dot: rgba(0, 0, 0, 0.13);
+
+  --accent: #5e7c8c;
+  --accent-strong: color-mix(in srgb, var(--accent) 65%, var(--ink));
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, var(--base));
+  --accent-faint: color-mix(in srgb, var(--accent) 8%, var(--base));
+
+  --danger: color-mix(in srgb, #8c5e5e 70%, var(--ink));
+
+  /* paired soft neuromorphic shadows */
+  --shadow-light: rgba(255, 255, 255, 0.92);
+  --shadow-dark: rgba(0, 0, 0, 0.10);
+  --shadow-raised: 6px 6px 14px var(--shadow-dark), -6px -6px 14px var(--shadow-light);
+  --shadow-raised-lg: 10px 10px 22px var(--shadow-dark), -10px -10px 22px var(--shadow-light);
+  --shadow-inset: inset 3px 3px 7px var(--shadow-dark), inset -3px -3px 7px var(--shadow-light);
+
+  --radius: 14px;
+  --radius-sm: 9px;
+  --cell: 240px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--ink);
+  background: var(--base);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* --- top bar --- */
+.topbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 12px 18px;
+  background: linear-gradient(145deg, var(--base-2), var(--base-3));
+  box-shadow: var(--shadow-raised), inset 0 -1px 0 var(--hairline);
+  z-index: 20;
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-size: 18px;
+  color: var(--accent-strong);
+}
+
+.hint {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+/* --- viewport --- */
+.viewport {
+  position: relative;
+  flex: 1 1 auto;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  background-color: var(--base);
+  background-image: radial-gradient(var(--dot) 1.5px, transparent 1.6px);
+  background-size: var(--cell) var(--cell);
+  background-position: 0 0;
+}
+
+.viewport.grabbing { cursor: grabbing; }
+
+.world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  will-change: transform;
+}
+
+/* --- shared buttons --- */
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  color: var(--ink);
+  background: linear-gradient(145deg, var(--base-2), var(--base-3));
+  box-shadow: var(--shadow-raised);
+  transition: box-shadow 0.15s ease, color 0.15s ease, transform 0.05s ease;
+}
+button:hover { box-shadow: var(--shadow-raised-lg), inset 0 0 0 1px var(--accent-soft); }
+button:active { box-shadow: var(--shadow-inset); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.btn-accent {
+  color: var(--accent-strong);
+  box-shadow: var(--shadow-raised), inset 0 0 0 1px var(--accent-soft);
+}
+.btn-ghost { background: transparent; box-shadow: none; }
+.btn-ghost:hover { box-shadow: inset 0 0 0 1px var(--accent-soft); }
+.btn-danger { color: var(--danger); }
+.btn-danger:hover { box-shadow: var(--shadow-raised), inset 0 0 0 1px color-mix(in srgb, var(--danger) 25%, transparent); }
+
+.spacer { flex: 1 1 auto; }

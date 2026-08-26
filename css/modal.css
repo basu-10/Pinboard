@@ -1,0 +1,92 @@
+/* --- modal overlay + dialogs --- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(22, 24, 30, 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.modal-overlay[hidden] { display: none; }
+
+.modal {
+  width: min(640px, 94vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 18px 16px;
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, var(--base-2), var(--base));
+  box-shadow: var(--shadow-raised-lg);
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--accent-strong);
+}
+
+.modal-close {
+  padding: 4px 10px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.modal-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* --- editor --- */
+.editor-info {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.editor-area {
+  flex: 1 1 auto;
+  min-height: 260px;
+  resize: vertical;
+  padding: 12px;
+  font: 14px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color: var(--ink);
+  background: var(--base);
+  border: none;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-inset);
+}
+.editor-area:focus { outline: 1px solid var(--accent-soft); }
+
+/* --- image viewer --- */
+.viewer-body {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--base);
+  box-shadow: var(--shadow-inset);
+  overflow: hidden;
+}
+
+.viewer-img {
+  max-width: 100%;
+  max-height: 60vh;
+  border-radius: var(--radius-sm);
+  display: block;
+}
