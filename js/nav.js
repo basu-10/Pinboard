@@ -10,8 +10,8 @@ const ISLAND_GAP = 1;
 let islands = []; // [{ x, y, w, h, cx, cy, count }] in world px, spatial order
 let currentIndex = -1; // last island framed via prev/next/minimap
 
-let navBar, prevBtn, nextBtn, countEl;
-let minimap, mmCanvas, mmTotal;
+let navPanel, prevBtn, nextBtn, countEl;
+let mmCanvas, mmTotal;
 let pillEl;
 let mmRects = []; // island rect elements, parallel to `islands`
 let vpRect = null; // viewport indicator element
@@ -287,27 +287,26 @@ function nearestIslandToPoint(wx, wy) {
 // ---------------------------------------------------------------------------
 
 function buildUI() {
-  navBar = document.createElement("div");
-  navBar.className = "nav-bar";
-  navBar.innerHTML = `
-    <button type="button" class="nav-prev" aria-label="Previous group">&lsaquo;</button>
-    <span class="nav-count" aria-live="polite">&ndash; / &ndash;</span>
-    <button type="button" class="nav-next" aria-label="Next group">&rsaquo;</button>`;
-  document.body.appendChild(navBar);
-  prevBtn = navBar.querySelector(".nav-prev");
-  nextBtn = navBar.querySelector(".nav-next");
-  countEl = navBar.querySelector(".nav-count");
+  navPanel = document.createElement("div");
+  navPanel.className = "nav-panel";
+  navPanel.innerHTML = `
+    <div class="nav-head">
+      <span class="nav-title">Groups <span class="minimap-total"></span></span>
+      <span class="nav-controls">
+        <button type="button" class="nav-prev" aria-label="Previous group">&lsaquo;</button>
+        <span class="nav-count" aria-live="polite">&ndash; / &ndash;</span>
+        <button type="button" class="nav-next" aria-label="Next group">&rsaquo;</button>
+      </span>
+    </div>
+    <div class="minimap-canvas"></div>`;
+  document.body.appendChild(navPanel);
+  prevBtn = navPanel.querySelector(".nav-prev");
+  nextBtn = navPanel.querySelector(".nav-next");
+  countEl = navPanel.querySelector(".nav-count");
+  mmTotal = navPanel.querySelector(".minimap-total");
+  mmCanvas = navPanel.querySelector(".minimap-canvas");
   prevBtn.addEventListener("click", () => step(-1));
   nextBtn.addEventListener("click", () => step(1));
-
-  minimap = document.createElement("div");
-  minimap.className = "minimap";
-  minimap.innerHTML = `
-    <div class="minimap-head">Groups <span class="minimap-total"></span></div>
-    <div class="minimap-canvas"></div>`;
-  document.body.appendChild(minimap);
-  mmCanvas = minimap.querySelector(".minimap-canvas");
-  mmTotal = minimap.querySelector(".minimap-total");
   mmCanvas.addEventListener("click", onMinimapClick);
 
   pillEl = document.createElement("button");

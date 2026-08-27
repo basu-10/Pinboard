@@ -1,5 +1,5 @@
 import { CELL, state } from "./state.js";
-import { queryWindow, PREVIEW_MAX, updateCardSpan } from "./db.js";
+import { queryWindow, PREVIEW_MAX, updateCardSpan, getBlob } from "./db.js";
 import { didPan } from "./grid.js";
 import * as editor from "./editor.js";
 import * as image from "./image.js";
@@ -134,40 +134,108 @@ function clearCardContent(el) {
   }
 }
 
-function updateCard(el, m) {
+// Full note text is stored in the blob store, not in meta. Cache it so resizing
+// (and re-rendering) doesn't re-read IndexedDB every time.
+const textCache = new Map(); // id -> Promise<string>
+function getTextCached(id) {
+  if (!textCache.has(id)) {
+    textCache.set(
+      id,
+      getBlob(id)
+        .then((b) => (b && b.text ? b.text : ""))
+        .catch(() => "")
+    );
+  }
+  return textCache.get(id);
+}
+
+async function updateCard(el, m) {
   const cs = m.colSpan || 1;
   const rs = m.rowSpan || 1;
-  el._card = { id: m.id, row: m.row, col: m.col, colSpan: cs, rowSpan: rs };
+  el._card = { id: m.id, row: m.row, col: m.col, colSpan: cs, rowSpan: rs, type: m.type };
 
   el.style.left = `${m.col * CELL + 8}px`;
   el.style.top = `${m.row * CELL + 8}px`;
   el.style.width = `${cs * CELL - 16}px`;
   el.style.height = `${rs * CELL - 16}px`;
 
+  // Skip rebuild when the card already has content and its size hasn't changed,
+  // so panning / re-rendering doesn't re-decode and re-paint every image.
+  const geom = `${cs}x${rs}`;
+  const hasContent = el.querySelector(".card-thumb, .card-body");
+  if (hasContent && el._geom === geom && el._type === m.type) {
+    if (m.type === "image" && !el._lastThumb) {
+      const img = el.querySelector(".card-thumb");
+      if (img) image.paintCardThumb(img, m.id, img.clientWidth, img.clientHeight);
+    }
+    return;
+  }
+  el._geom = geom;
+  el._type = m.type;
+
+  clearCardContent(el);
+  const meta = document.createElement("div");
+  meta.className = "card-meta";
+
   if (m.type === "text") {
-    clearCardContent(el);
     const body = document.createElement("div");
     body.className = "card-body";
-    body.textContent = m.preview || "";
-    const meta = document.createElement("div");
-    meta.className = "card-meta";
+    // Show the cached text immediately to avoid an empty flash, then refresh.
+    body.textContent = el._lastText || "";
     if (m.charCount > PREVIEW_MAX) {
       meta.textContent = `… ${m.charCount - PREVIEW_MAX} more`;
     } else {
       meta.textContent = m.title || "";
     }
     el.append(body, meta);
+    const text = await getTextCached(m.id);
+    el._lastText = text;
+    body.textContent = text || "";
+    applyTextClamp(el, body);
   } else {
-    clearCardContent(el);
     const img = document.createElement("img");
     img.className = "card-thumb";
-    img.src = m.thumb || "";
+    // Reuse the last painted (size-matched) image to avoid a blurry flash.
+    img.src = el._lastThumb || m.thumb || "";
     img.alt = m.title || "image";
-    const meta = document.createElement("div");
-    meta.className = "card-meta";
     meta.textContent = m.title || "image";
     el.append(img, meta);
+    // Re-render from the full-res blob at this card's pixel size.
+    image.paintCardThumb(img, m.id, img.clientWidth, img.clientHeight);
   }
+}
+
+/**
+ * Clamp the text card to as many lines as fit the current card height, so the
+ * note reflows (shows more lines) when the card is made taller/wider.
+ */
+function applyTextClamp(el, body) {
+  const meta = el.querySelector(".card-meta");
+  const bStyle = getComputedStyle(body);
+  const lh = parseFloat(bStyle.lineHeight) || parseFloat(bStyle.fontSize) * 1.45;
+  const eStyle = getComputedStyle(el);
+  const padV = parseFloat(eStyle.paddingTop) + parseFloat(eStyle.paddingBottom);
+  const metaH = meta ? meta.offsetHeight : 0;
+  const avail = el.clientHeight - padV - metaH - 8;
+  const lines = Math.max(1, Math.floor(avail / lh));
+  body.style.webkitLineClamp = lines;
+}
+
+let reflowRaf = 0;
+function scheduleReflow(el) {
+  if (reflowRaf) return;
+  reflowRaf = requestAnimationFrame(() => {
+    reflowRaf = 0;
+    const card = el._card;
+    if (!card) return;
+    if (card.type === "image") {
+      const img = el.querySelector(".card-thumb");
+      if (img) image.paintCardThumb(img, card.id, img.clientWidth, img.clientHeight);
+    } else {
+      const body = el.querySelector(".card-body");
+      if (body) applyTextClamp(el, body);
+    }
+  });
 }
 
 function onHover(e) {
@@ -269,6 +337,7 @@ function onHandleDown(e) {
     el.style.height = `${rs * CELL - 16}px`;
     card.colSpan = cs;
     card.rowSpan = rs;
+    scheduleReflow(el);
   };
 
   const up = async () => {

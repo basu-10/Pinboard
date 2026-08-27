@@ -9,6 +9,59 @@ let fileInput = null;
 let current = null; // { id, row, col, isNew }
 let lastUrl = null;
 
+// Cache full-size image blobs so the card can re-render them at any size
+// without re-reading IndexedDB on every resize.
+const blobCache = new Map(); // id -> Promise<Blob|null>
+function getBlobCached(id) {
+  if (!blobCache.has(id)) {
+    blobCache.set(
+      id,
+      getBlob(id)
+        .then((b) => (b && b.imageBlob ? b.imageBlob : null))
+        .catch(() => null)
+    );
+  }
+  return blobCache.get(id);
+}
+
+/**
+ * Paint the card thumbnail from the stored (full-size) image blob, sized to the
+ * card's on-screen pixels. This keeps the image crisp after the card is resized
+ * instead of stretching the tiny 200px upload thumbnail. Never upscales past the
+ * source image, so the canvas stays within the original (capped) resolution.
+ */
+export async function paintCardThumb(imgEl, id, cssW, cssH) {
+  const blob = await getBlobCached(id);
+  if (!blob) return;
+  let bmp;
+  try {
+    bmp = await createImageBitmap(blob);
+  } catch (_) {
+    const url = URL.createObjectURL(blob);
+    imgEl.src = url;
+    imgEl.addEventListener("load", () => URL.revokeObjectURL(url), { once: true });
+    return;
+  }
+  const dpr = window.devicePixelRatio || 1;
+  let tw = Math.max(1, Math.round(cssW * dpr));
+  let th = Math.max(1, Math.round(cssH * dpr));
+  const fit = Math.min(1, tw / bmp.width, th / bmp.height);
+  tw = Math.max(1, Math.round(bmp.width * fit));
+  th = Math.max(1, Math.round(bmp.height * fit));
+  const canvas = document.createElement("canvas");
+  canvas.width = tw;
+  canvas.height = th;
+  const ctx = canvas.getContext("2d");
+  const s = Math.max(tw / bmp.width, th / bmp.height);
+  const dw = bmp.width * s;
+  const dh = bmp.height * s;
+  ctx.drawImage(bmp, (tw - dw) / 2, (th - dh) / 2, dw, dh);
+  if (bmp.close) bmp.close();
+  const url = canvas.toDataURL("image/webp", 0.9);
+  imgEl.parentElement._lastThumb = url;
+  imgEl.src = url;
+}
+
 export function init(opts) {
   onChange = opts.onChange;
   build();
