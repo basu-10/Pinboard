@@ -34,6 +34,7 @@ js/
   image.js          image viewer modal + image resize/thumbnail encoding
   db.js             IndexedDB layer (meta + blob + boards stores, window queries)
   nav.js            minimap, island clustering, navigation controls
+  history.js        undo/redo command stack
 ```
 
 ## Module responsibilities
@@ -141,20 +142,41 @@ each board showing a cover preview, title, card counts, and saved date, with
 Open (links to `app.html?board=<id>`) and Delete actions. Deleting calls
 `deleteBoard` and removes the card from the DOM.
 
+### history.js
+
+Implements an undo/redo command stack using the command pattern. Each wall
+mutation is recorded as a reversible command object with `undo()` and `redo()`
+methods that perform the corresponding IndexedDB operation and notify the app
+to re-render. Five command types cover every mutation:
+
+- **Add card** — undo deletes, redo re-adds (stores meta + blob).
+- **Delete card** — undo re-adds from captured meta + blob, redo deletes.
+- **Move card** — undo/redo call `updateCardPosition` with the from/to cells.
+- **Resize card** — undo/redo call `updateCardSpan` with the from/to spans.
+- **Edit card** — undo/redo write the old/new meta + blob via `putCard`.
+
+The stack is bounded (100 entries) and pushing a new command clears the redo
+stack. The module owns the undo/redo button disabled state and exposes
+`clearHistory` for board restore.
+
 ## Data flow
 
 1. **Startup**: `app.js → initDB()` → initialize editor, image, cards, grid, nav.
 2. **Render loop**: grid pan → `onWindowChange` → `cards.render(w)` →
    `db.queryWindow(rowMin..rowMax, colMin..colMax)` → reconcile DOM.
 3. **Place**: cell toolbar click → handler (editor.openNew / image.openNew /
-   pasteAt) → `db.putCard` → `onChange` → `cards.renderCurrent`.
+   pasteAt) → `db.putCard` → `history.recordAddCard` → `onChange` →
+   `cards.renderCurrent`.
 4. **Drag**: `onCardDown` → `new DragSession` → `onMove` updates live DOM
    position + ghost → `onCommit` updates occupancy + `db.updateCardPosition`
-   → `onMove` handler re-renders nav.
+   → `history.recordMoveCard` → `onMove` handler re-renders nav.
 5. **Resize**: handle drag → live DOM width/height → `onCardUp` →
-   `db.updateCardSpan` → callback re-renders.
+   `db.updateCardSpan` → `history.recordResizeCard` → callback re-renders.
 6. **Paste**: toolbar Paste click → `app.js.pasteAt` → `navigator.clipboard.read()`
-   → dispatch image/text → `db.putCard` → `onChange`.
+   → dispatch image/text → `db.putCard` → `history.recordAddCard` → `onChange`.
+7. **Undo/redo**: button click or Ctrl+Z / Ctrl+Y → `history.undo()` /
+   `history.redo()` → command performs the inverse/repeat DB operation →
+   `notify(id)` invalidates the affected card's cache and re-renders.
 
 ## Design decisions
 
@@ -173,3 +195,8 @@ Open (links to `app.html?board=<id>`) and Delete actions. Deleting calls
 - **Clipboard as first-class**: paste reuses the exact same image/text
   creation pipeline as the file picker and editor, so pasted content behaves
   identically to manually added content.
+- **Command pattern for undo/redo**: every wall mutation is wrapped in a small
+  command object (`undo`/`redo` methods) pushed onto a bounded stack. This keeps
+  the history concern isolated from the interaction code — cards.js, editor.js,
+  and image.js each record a command after their DB write, without knowing how
+  undo/redo is implemented.

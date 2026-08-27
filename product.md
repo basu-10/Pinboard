@@ -62,6 +62,14 @@ south-east edges. Dragging a handle resizes the card by whole grid cells,
 respecting the wall's occupied-cell grid so cards never overlap. The new span
 is persisted on release.
 
+### Undo / redo
+
+Every change to the wall — placing, moving, resizing, editing, or deleting a
+card — can be undone and redone. The top bar has dedicated undo and redo
+buttons (disabled when there is nothing to undo/redo), and the standard
+keyboard shortcuts work: **Ctrl+Z** (undo) and **Ctrl+Y** or **Ctrl+Shift+Z**
+(redo). Accidental drags and deletes are fully reversible.
+
 ### Panning the canvas
 
 Dragging on empty space (not on a card or the cell toolbar) pans the
