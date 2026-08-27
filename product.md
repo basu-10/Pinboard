@@ -95,12 +95,19 @@ When starting a fresh board, you don't have to begin from a blank grid. A
 **Kanban** (To Do / In Progress / Done columns with a few seeded example
 tasks), **Weekly Planner** (seven day columns, each with a notes area), and
 **Blank** (an empty canvas). Picking one seeds the board with pre-placed text
-pins so the structure is already there to fill in. Applying a template replaces
-the current pins and asks for confirmation first if the board already has
-content. On an empty board the same picker is also offered through a subtle
-"or start from a template" link in the onboarding hint, so the option is
-discoverable exactly when you would use it without adding permanent clutter to
-a working board.
+pins so the structure is already there to fill in.
+
+The template headers are color-coded to make the structure instantly readable:
+the Kanban column headers (To Do, In Progress, Done) each get a distinct color,
+but only the headers — the Kanban task cards stay uncolored. In the Weekly
+Planner, each day is its own color and that color fills the entire column:
+both the day's header and its notes area share the same color, so each weekday
+reads as a distinctly colored column. These colors come from the same preset
+pin palette used elsewhere in the app. Applying a template replaces the current
+pins and asks for confirmation first if the board already has content. On an
+empty board the same picker is also offered through a subtle "or start from a
+template" link in the onboarding hint, so the option is discoverable exactly
+when you would use it without adding permanent clutter to a working board.
 
 ### Panning the canvas
 

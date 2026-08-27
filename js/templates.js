@@ -4,9 +4,22 @@ import { clearHistory } from "./history.js";
 /**
  * Board templates seed the empty canvas with a set of pre-placed text pins.
  * Each template is a function returning descriptors of the form
- * { row, col, colSpan, rowSpan, text } — all cards stay uncolored to honor the
- * single-accent monochrome theme.
+ * { row, col, colSpan, rowSpan, color, text }. Only the column/day header pins
+ * carry a `color` (a preset hex from the pin palette); the body pins stay
+ * uncolored so the accent reads as structure, not noise.
  */
+// Distinct preset hexes (from the pin color palette) — one per header.
+const KANBAN_COLORS = ["#FF8FA3", "#8CE99A", "#63D2FF"];
+const WEEK_COLORS = [
+  "#FF8FA3", // Mon
+  "#FFB27D", // Tue
+  "#FFD43B", // Wed
+  "#8CE99A", // Thu
+  "#63D2FF", // Fri
+  "#B197FC", // Sat
+  "#F783C2", // Sun
+];
+
 const TEMPLATES = {
   kanban: {
     name: "Kanban",
@@ -19,7 +32,7 @@ const TEMPLATES = {
       ];
       const out = [];
       cols.forEach(({ c, title }, i) => {
-        out.push({ row: 0, col: c, colSpan: 1, rowSpan: 1, text: `${title}\nDrop tasks into this column.` });
+        out.push({ row: 0, col: c, colSpan: 1, rowSpan: 1, color: KANBAN_COLORS[i], text: `${title}\nDrop tasks into this column.` });
         const seeds = [
           ["Write project brief", "Sketch the goals and scope."],
           ["Design board grid", "Map columns to your workflow."],
@@ -41,8 +54,9 @@ const TEMPLATES = {
       const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
       const out = [];
       days.forEach((d, i) => {
-        out.push({ row: 0, col: i, colSpan: 1, rowSpan: 1, text: `${d}\nHeadline for the day.` });
-        out.push({ row: 1, col: i, colSpan: 1, rowSpan: 6, text: `${d} notes\n\n• \n• \n• ` });
+        // Whole column takes the day's color: header + its notes area share it.
+        out.push({ row: 0, col: i, colSpan: 1, rowSpan: 1, color: WEEK_COLORS[i], text: `${d}\nHeadline for the day.` });
+        out.push({ row: 1, col: i, colSpan: 1, rowSpan: 2, color: WEEK_COLORS[i], text: `${d} notes\n\n• \n• \n• ` });
       });
       return out;
     },
@@ -59,7 +73,7 @@ function firstLine(text) {
   return (text.trim().split("\n")[0] || "").slice(0, 60);
 }
 
-function makeTextCard({ row, col, colSpan = 1, rowSpan = 1, text }) {
+function makeTextCard({ row, col, colSpan = 1, rowSpan = 1, color, text }) {
   const id = crypto.randomUUID();
   const meta = {
     id,
@@ -72,7 +86,7 @@ function makeTextCard({ row, col, colSpan = 1, rowSpan = 1, text }) {
     preview: text.slice(0, PREVIEW_MAX),
     charCount: text.length,
     thumb: "",
-    color: null,
+    color: color || null,
     updatedAt: Date.now(),
   };
   return { meta, blob: { id, text } };
