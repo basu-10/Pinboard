@@ -18,8 +18,10 @@ freely at fractional positions.
 
 ### Placing cards
 
-Hovering the cursor over an empty grid cell reveals a small toolbar attached to
-that cell offering three choices:
+Hovering the cursor over an empty grid cell highlights that cell itself — the
+cell lights up with an inset accent ring and a soft fill, and the three add
+options are embedded directly inside the highlighted cell, so the action reads
+as placing content into that specific cell. The choices are:
 
 - **+ Note** — opens a text editor modal where you type a note. Saving stores
   it and returns to the wall, where the note appears as a text card showing its

@@ -295,8 +295,11 @@ function onHover(e) {
   }
 
   hoverCell = { row, col };
-  cellAddEl.style.left = `${state.panX + col * CELL + 8}px`;
-  cellAddEl.style.top = `${state.panY + row * CELL + 8}px`;
+  const inset = 4; // small breathing room so the highlight reads as the cell
+  cellAddEl.style.left = `${state.panX + col * CELL + inset}px`;
+  cellAddEl.style.top = `${state.panY + row * CELL + inset}px`;
+  cellAddEl.style.width = `${CELL - inset * 2}px`;
+  cellAddEl.style.height = `${CELL - inset * 2}px`;
   cellAddEl.hidden = false;
 }
 
