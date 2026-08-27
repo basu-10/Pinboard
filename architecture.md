@@ -39,7 +39,9 @@ js/
    db.js             IndexedDB layer (meta + blob + boards stores, window queries)
    nav.js            minimap, island clustering, navigation + jump/fit controls
    search.js         slide-out note search panel (magnifier toggle, text index)
-   history.js        undo/redo command stack
+    history.js        undo/redo command stack
+    theme.js          theme control: OS `prefers-color-scheme`, manual 3-state override, persisted
+    quota.js          storage-quota guard: usage estimate, QuotaError, warn-before-write + error modal
 ```
 
 ## Module responsibilities

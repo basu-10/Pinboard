@@ -6,8 +6,19 @@
   <title>Pinboard</title>
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/site.css" />
+  <meta name="color-scheme" content="light dark" />
+  <script>
+    (function () {
+      try {
+        var s = localStorage.getItem("pinboard-theme") || "system";
+        var dark = s === "dark" || (s === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body class="page-landing">
+  <button type="button" id="themeToggle" class="icon-btn theme-toggle" aria-label="Toggle theme"></button>
   <main class="hero">
     <span class="hero-mark" aria-hidden="true">
       <svg viewBox="0 0 24 24" width="40" height="40">
@@ -30,5 +41,11 @@
     <p>Made with <span class="heart" aria-label="love">♥</span> by Asesh Basu.</p>
     <p>Part of &lsquo;The NightCrafts&rsquo; (A FOSS initiative).</p>
   </footer>
+
+  <script type="module">
+    import { initTheme, mountThemeToggle } from "./js/theme.js";
+    initTheme();
+    mountThemeToggle(document.getElementById("themeToggle"));
+  </script>
 </body>
 </html>

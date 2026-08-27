@@ -1,5 +1,7 @@
 export const PREVIEW_MAX = 280;
 
+import { isQuotaError, QuotaError } from "./quota.js";
+
 const DB_NAME = "text-wall";
 const DB_VERSION = 2;
 const META_STORE = "meta";
@@ -7,6 +9,12 @@ const BLOB_STORE = "blobs";
 const BOARD_STORE = "boards";
 
 let dbPromise = null;
+
+// Normalize every write failure: a quota rejection becomes a `QuotaError` so
+// callers can surface a clear, actionable message instead of a silent loss.
+function rej(error) {
+  return isQuotaError(error) ? new QuotaError(error) : error;
+}
 
 export function initDB() {
   if (dbPromise) return dbPromise;
@@ -38,7 +46,7 @@ export async function putCard(meta, blob) {
     t.objectStore(META_STORE).put(meta);
     if (blob !== undefined && blob !== null) t.objectStore(BLOB_STORE).put(blob);
     t.oncomplete = () => resolve();
-    t.onerror = () => reject(t.error);
+    t.onerror = () => reject(rej(t.error));
   });
 }
 
@@ -81,7 +89,7 @@ export async function updateCardSpan(id, colSpan, rowSpan) {
       store.put(m);
     };
     t.oncomplete = () => resolve();
-    t.onerror = () => reject(t.error);
+    t.onerror = () => reject(rej(t.error));
   });
 }
 
@@ -105,7 +113,7 @@ export async function updateCardColor(id, color) {
       store.put(m);
     };
     t.oncomplete = () => resolve();
-    t.onerror = () => reject(t.error);
+    t.onerror = () => reject(rej(t.error));
   });
 }
 
@@ -130,7 +138,7 @@ export async function updateCardPosition(id, row, col) {
       store.put(m);
     };
     t.oncomplete = () => resolve();
-    t.onerror = () => reject(t.error);
+    t.onerror = () => reject(rej(t.error));
   });
 }
 
@@ -164,7 +172,7 @@ export async function deleteCard(id) {
     t.objectStore(META_STORE).delete(id);
     t.objectStore(BLOB_STORE).delete(id);
     t.oncomplete = () => resolve();
-    t.onerror = () => reject(t.error);
+    t.onerror = () => reject(rej(t.error));
   });
 }
 
@@ -206,7 +214,7 @@ export async function putBoard(board) {
     const t = db.transaction(BOARD_STORE, "readwrite");
     t.objectStore(BOARD_STORE).put(board);
     t.oncomplete = () => resolve();
-    t.onerror = () => reject(t.error);
+    t.onerror = () => reject(rej(t.error));
   });
 }
 
@@ -246,7 +254,7 @@ export async function deleteBoard(id) {
     const t = db.transaction(BOARD_STORE, "readwrite");
     t.objectStore(BOARD_STORE).delete(id);
     t.oncomplete = () => resolve();
-    t.onerror = () => reject(t.error);
+    t.onerror = () => reject(rej(t.error));
   });
 }
 
@@ -261,7 +269,7 @@ export async function clearWall() {
     t.objectStore(META_STORE).clear();
     t.objectStore(BLOB_STORE).clear();
     t.oncomplete = () => resolve();
-    t.onerror = () => reject(t.error);
+    t.onerror = () => reject(rej(t.error));
   });
 }
 
@@ -280,7 +288,7 @@ export async function restoreBoard(board) {
       t.objectStore(META_STORE).put(card.meta);
       if (card.blob) t.objectStore(BLOB_STORE).put(card.blob);
       t.oncomplete = () => resolve();
-      t.onerror = () => reject(t.error);
+      t.onerror = () => reject(rej(t.error));
     });
   }
 }

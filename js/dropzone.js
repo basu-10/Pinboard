@@ -2,6 +2,7 @@ import { CELL, state } from "./state.js";
 import * as cards from "./cards.js";
 import * as image from "./image.js";
 import * as editor from "./editor.js";
+import * as quota from "./quota.js";
 
 let viewportEl = null;
 let dropHintEl = null;
@@ -117,6 +118,7 @@ function freeCell(row, col, used) {
 
 async function importFiles(files, row, col) {
   if (!files.length) return;
+  await quota.warnBeforeWrite();
   const used = new Set();
   for (const file of files) {
     const target = freeCell(row, col, used);
@@ -135,6 +137,10 @@ async function importOne(file, row, col) {
     const text = await readText(file);
     await editor.createFromText(text, row, col);
   } catch (err) {
+    if (quota.isQuotaError(err) || err instanceof quota.QuotaError) {
+      quota.showQuotaError();
+      return;
+    }
     errorQueue.push({ file, row, col, info: classifyError(err, file) });
   }
 }

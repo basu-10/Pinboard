@@ -4,6 +4,8 @@ import {
   exportBoardZip,
   importBoardJSON,
 } from "./backup.js";
+import { initTheme, mountThemeToggle } from "./theme.js";
+import * as quota from "./quota.js";
 
 const grid = document.getElementById("libraryGrid");
 const emptyEl = document.getElementById("libraryEmpty");
@@ -139,13 +141,16 @@ async function onImportFile() {
   importFile.value = "";
   if (!file) return;
   try {
+    await quota.warnBeforeWrite();
     const board = await importBoardJSON(file);
     grid.prepend(buildCard(board));
     refreshEmpty();
     toast(`Imported “${board.title || "Untitled board"}”`);
   } catch (err) {
-    console.error("Failed to import board:", err);
-    toast(err.message || "Import failed", true);
+    if (!quota.reportWriteError(err)) {
+      console.error("Failed to import board:", err);
+      toast(err.message || "Import failed", true);
+    }
   }
 }
 
@@ -154,6 +159,10 @@ function refreshEmpty() {
 }
 
 async function main() {
+  initTheme();
+  mountThemeToggle(document.getElementById("themeToggle"));
+  quota.installGlobalGuard();
+
   await initDB();
   const boards = await getAllBoards();
   grid.innerHTML = "";

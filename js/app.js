@@ -9,6 +9,8 @@ import * as history from "./history.js";
 import * as search from "./search.js";
 import * as dropzone from "./dropzone.js";
 import { createTemplatePicker } from "./templates.js";
+import { initTheme, mountThemeToggle } from "./theme.js";
+import * as quota from "./quota.js";
 
 async function pasteAt(row, col) {
   if (!navigator.clipboard || !navigator.clipboard.read) {
@@ -119,6 +121,7 @@ async function saveCurrentBoard() {
     counts: { text: textCount, image: imageCount },
     cards: cardsData,
   };
+  await quota.warnBeforeWrite();
   await putBoard(board);
   toast(`Saved “${title}” to library`);
 }
@@ -144,6 +147,10 @@ async function maybeRestoreFromUrl() {
 }
 
 async function main() {
+  initTheme();
+  mountThemeToggle(document.getElementById("themeToggle"));
+  quota.installGlobalGuard();
+
   await initDB();
   await maybeRestoreFromUrl();
 
@@ -193,8 +200,10 @@ async function main() {
     saveBoardBtn.disabled = true;
     saveCurrentBoard()
       .catch((err) => {
-        console.error("Failed to save board:", err);
-        toast("Could not save board");
+        if (!quota.reportWriteError(err)) {
+          console.error("Failed to save board:", err);
+          toast("Could not save board");
+        }
       })
       .finally(() => (saveBoardBtn.disabled = false));
   });

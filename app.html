@@ -9,6 +9,16 @@
   <link rel="stylesheet" href="css/modal.css" />
   <link rel="stylesheet" href="css/nav.css" />
   <link rel="stylesheet" href="css/search.css" />
+  <meta name="color-scheme" content="light dark" />
+  <script>
+    (function () {
+      try {
+        var s = localStorage.getItem("pinboard-theme") || "system";
+        var dark = s === "dark" || (s === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
   <header class="topbar">
@@ -37,7 +47,8 @@
       </button>
     </span>
     <span class="hint">Drag to pan &middot; drag a pin to another cell &middot; click an empty cell to add a note, image, or paste &middot; drop files from your computer onto the board &middot; right-click a pin to resize it</span>
-    <a class="topbar-link" href="library.html">Library</a>
+      <button type="button" id="themeToggle" class="icon-btn" aria-label="Toggle theme"></button>
+      <a class="topbar-link" href="library.html">Library</a>
   </header>
 
   <main class="viewport" id="viewport">

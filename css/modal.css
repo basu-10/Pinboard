@@ -249,3 +249,42 @@
   line-height: 1.45;
   color: var(--ink-soft);
 }
+
+/* --- storage quota warning / error (js/quota.js) --- */
+.quota-msg {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.quota-usage { display: flex; flex-direction: column; gap: 2px; }
+.quota-bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--base);
+  box-shadow: var(--shadow-inset);
+  overflow: hidden;
+}
+.quota-bar-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: linear-gradient(145deg, var(--accent-soft), var(--accent));
+  box-shadow: inset 0 0 0 1px var(--accent);
+  transition: width 0.25s ease;
+}
+.quota-bar-fill.is-near {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--danger) 35%, var(--base)), var(--danger));
+}
+.quota-label {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.quota-advice {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.quota-advice[hidden] { display: none; }

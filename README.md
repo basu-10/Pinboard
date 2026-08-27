@@ -15,8 +15,16 @@ python3 -m http.server 8000
 
 Then open <http://localhost:8000>.
 
-## Deploy to Cloudflare Pages
+## Live site
 
-Set **build command** empty and **output directory** to `.`. Upload the folder
-as-is; `index.html` at the root is the entry. IndexedDB storage is per-browser,
-so each visitor keeps their own wall.
+Served at <https://pinboard.abaxu.workers.dev/> (Cloudflare Workers, static
+asset serving — no build step). `index.html` at the root is the entry point.
+
+## Deploy
+
+The site is plain static files with ES modules, so it runs on any static host:
+
+- **Cloudflare Workers / Pages** — no build command, publish the folder as-is.
+- **Any static server** — upload the directory; `index.html` is the entry.
+
+IndexedDB storage is per-browser, so each visitor keeps their own wall.

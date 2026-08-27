@@ -211,6 +211,30 @@ leave the browser and come back:
   a single zip archive named after the board. This is the easiest way to get your
   content out as ordinary, openable files.
 
+## Appearance and dark mode
+
+Pinboard follows the operating system's color scheme by default and also offers
+a manual override. A theme button (a sun, moon, or auto icon) sits in the top
+bar of the board and the Library, and in the corner of the landing page.
+Clicking it cycles through three states: **Auto** mirrors the OS preference via
+`prefers-color-scheme`, **Light** forces a light surface, and **Dark** forces a
+dark surface. The chosen state is remembered per browser, so returning later
+restores the same appearance. The interface uses a single accent hue on a
+neutral base, so dark mode simply swaps the neutral surface to a dark tone while
+keeping the same monochrome, softly sculpted look.
+
+## Browser storage limits
+
+All data lives in the browser's IndexedDB, which grants each site a finite
+quota. Before a large write — saving a board, importing a backup, or dropping
+files onto the canvas — Pinboard estimates how much storage is already used and,
+if the site is near its limit (about 85% full), shows a non-blocking warning with
+a usage bar so the user knows a write may fail. If a write still fails because
+storage is full, the app shows a clear error instead of losing the change
+silently: it explains the board could not be saved and suggests freeing space by
+deleting or exporting boards from the Library. A failing write anywhere in the
+app is caught and routed to this same message.
+
 ## Landing and navigation
 
 The app opens on a landing page with two entry points: **Open Board** drops you

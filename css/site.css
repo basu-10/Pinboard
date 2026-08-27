@@ -95,6 +95,17 @@ body.page-library {
   line-height: 1.7;
   color: var(--ink-soft);
 }
+
+/* --- floating theme toggle (landing page has no top bar) --- */
+.theme-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 40;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+}
 .site-footer p {
   margin: 0;
 }

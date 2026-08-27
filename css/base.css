@@ -27,6 +27,38 @@
   --cell: 240px;
 }
 
+/* --- dark theme: same single-hue accent, dark neutral base, soft paired
+       shadows flipped (subtle top-left highlight, deep bottom-right shadow) --- */
+:root[data-theme="dark"] {
+  --base: #181a20;
+  --base-2: #20232b;
+  --base-3: #13151b;
+  --ink: #e7e9ef;
+  --ink-soft: #9aa0ad;
+  --hairline: rgba(255, 255, 255, 0.08);
+  --dot: rgba(255, 255, 255, 0.09);
+
+  --accent: #6f93a6;
+  --accent-strong: color-mix(in srgb, var(--accent) 72%, #fff);
+  --accent-soft: color-mix(in srgb, var(--accent) 26%, var(--base));
+  --accent-faint: color-mix(in srgb, var(--accent) 13%, var(--base));
+
+  --danger: color-mix(in srgb, #d98d8d 72%, #fff);
+
+  --shadow-light: rgba(255, 255, 255, 0.05);
+  --shadow-dark: rgba(0, 0, 0, 0.55);
+}
+
+/* Smooth recolor on theme switch (background-image gradients are not
+   animatable, so this only eases solid ink/surface colors). */
+@media (prefers-reduced-motion: no-preference) {
+  body, .topbar, .site-head, .modal, .board-card, .tpl-tile,
+  .viewer-body, .editor-area, .board-cover, .drop-cell,
+  button, .btn-primary, .btn-secondary, .icon-btn, .topbar-link {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+}
+
 * { box-sizing: border-box; }
 
 html, body {
