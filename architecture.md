@@ -170,7 +170,37 @@ meta + blob in a single transaction. Board helpers cover `putBoard`,
 `getBoard`, `getAllBoards`, `deleteBoard`, `clearWall`, and `restoreBoard`,
 which replaces the live board with a board's stored pins. `updateCardColor`
 writes only the accent `color` field of an existing pin, used by the color
-picker.
+picker. Every write transaction's failure is normalized: a quota rejection is
+converted into a `QuotaError` (from `quota.js`) so callers can surface a clear
+storage-full message instead of losing the change silently.
+
+### theme.js
+
+Controls the visual theme. Reads a persisted preference (`system`, `light`, or
+`dark`) from `localStorage`, falling back to `system`. `initTheme` resolves the
+effective theme and sets `data-theme` on the document element; in `system` mode
+it subscribes to the OS `prefers-color-scheme` media query and re-applies when
+the OS switches. `mountThemeToggle` wires a button that cycles the three states
+on click. Each HTML page also carries a tiny inline script in its `<head>` that
+sets `data-theme` before first paint, preventing a flash of the wrong theme. The
+dark palette is a single block of CSS variables in `base.css` that swaps the
+neutral base for a dark tone while keeping the same one-hue accent.
+
+### quota.js
+
+Guards against IndexedDB's finite per-origin storage. `estimateUsage` reads
+`navigator.storage.estimate()` to report bytes used/quota. `isQuotaError`
+recognizes the several names browsers give a quota failure (`QuotaExceededError`,
+`NS_ERROR_DOM_QUOTA_REACHED`, and quota/exceeded messages). `QuotaError` is the
+normalized error that `db.js` throws on a full-store write. `warnBeforeWrite`
+shows a non-blocking warning (with a usage bar) when storage is near its limit,
+throttled so it does not repeat. `showQuotaError` shows a blocking error modal
+with the same usage bar plus advice to free space, and `reportWriteError` routes
+a caught error to that modal when it is quota-related (returning false otherwise
+so callers keep their generic handling). `installGlobalGuard` catches any
+uncaught quota rejection (e.g. a single note/image add) so no write fails
+silently. Call sites: `app.js` (save board), `library.js` (import backup),
+`dropzone.js` (file drops), and the global guard.
 
 ### nav.js
 
