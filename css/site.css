@@ -87,6 +87,21 @@ body.page-library {
   color: var(--ink-soft);
 }
 
+/* --- global footer --- */
+.site-footer {
+  text-align: center;
+  padding: 28px 24px 40px;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+.site-footer p {
+  margin: 0;
+}
+.site-footer .heart {
+  color: var(--accent-strong);
+}
+
 /* --- library page --- */
 .site-head {
   display: flex;

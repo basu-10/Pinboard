@@ -10,12 +10,20 @@ const ISLAND_GAP = 1;
 let islands = []; // [{ x, y, w, h, cx, cy, count }] in world px, spatial order
 let currentIndex = -1; // last island framed via prev/next/minimap
 
-let navPanel, prevBtn, nextBtn, countEl;
+let navPanel, prevBtn, nextBtn, countEl, chevronBtn;
 let mmCanvas, mmTotal;
 let pillEl;
 let mmRects = []; // island rect elements, parallel to `islands`
 let vpRect = null; // viewport indicator element
 let lastMap = null; // { b, scale, offX, offY } for click-to-world
+
+let manualOpen = false; // user pinned the minimap open via chevron
+let peeking = false; // temporarily revealed because the user is panning
+let revealTimer = null; // auto-hide countdown for the peek state
+
+// How long the minimap stays open after the last camera move before it
+// slides back to its collapsed default.
+const PEEK_HIDE_MS = 1300;
 
 export async function init() {
   buildUI();
@@ -296,6 +304,11 @@ function buildUI() {
         <button type="button" class="nav-prev" aria-label="Previous group">&lsaquo;</button>
         <span class="nav-count" aria-live="polite">&ndash; / &ndash;</span>
         <button type="button" class="nav-next" aria-label="Next group">&rsaquo;</button>
+        <button type="button" class="nav-toggle" aria-label="Toggle minimap" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M7 10l5 5 5-5z" />
+          </svg>
+        </button>
       </span>
     </div>
     <div class="minimap-canvas"></div>`;
@@ -304,10 +317,13 @@ function buildUI() {
   nextBtn = navPanel.querySelector(".nav-next");
   countEl = navPanel.querySelector(".nav-count");
   mmTotal = navPanel.querySelector(".minimap-total");
+  chevronBtn = navPanel.querySelector(".nav-toggle");
   mmCanvas = navPanel.querySelector(".minimap-canvas");
   prevBtn.addEventListener("click", () => step(-1));
   nextBtn.addEventListener("click", () => step(1));
+  chevronBtn.addEventListener("click", toggleMinimap);
   mmCanvas.addEventListener("click", onMinimapClick);
+  updateOpen();
 
   pillEl = document.createElement("button");
   pillEl.type = "button";
@@ -330,6 +346,37 @@ function renderNav() {
     mmTotal.textContent = islands.length ? `(${islands.length})` : "";
 }
 
+/** Manually pin / unpin the minimap via the chevron toggle. */
+function toggleMinimap() {
+  manualOpen = !manualOpen;
+  if (!manualOpen) {
+    peeking = false;
+    clearTimeout(revealTimer);
+  }
+  updateOpen();
+  requestAnimationFrame(updateMinimap);
+}
+
+/** Sync the collapsed/open visual state and chevron orientation. */
+function updateOpen() {
+  const open = manualOpen || peeking;
+  navPanel.classList.toggle("mm-open", open);
+  if (chevronBtn) chevronBtn.setAttribute("aria-expanded", String(open));
+}
+
+/** Briefly reveal the minimap (used while panning) then auto-hide. */
+function revealPeek() {
+  peeking = true;
+  updateOpen();
+  clearTimeout(revealTimer);
+  revealTimer = setTimeout(() => {
+    peeking = false;
+    updateOpen();
+  }, PEEK_HIDE_MS);
+  requestAnimationFrame(updateMinimap);
+}
+
 function onCamera() {
   if (mmCanvas) updateMinimap();
+  if (!manualOpen) revealPeek();
 }
