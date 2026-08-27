@@ -102,7 +102,10 @@ export function didPan() {
 
 function onPointerDown(e) {
   if (e.button !== 0) return;
-  if (e.target.closest(".card") || e.target.closest(".cell-add")) return;
+  // Don't pan when the press starts on a card or on the cell's add buttons;
+  // a press on the cell body (not a button) pans the canvas (the cell-add
+  // overlay itself is pointer-events:none so the gesture reaches the viewport).
+  if (e.target.closest(".card") || e.target.closest(".cell-add button")) return;
   dragging = true;
   moved = false;
   dragStart = { x: e.clientX, y: e.clientY, panX: state.panX, panY: state.panY };

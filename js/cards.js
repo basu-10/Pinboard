@@ -71,12 +71,12 @@ export function init(world, cellAdd, h) {
   worldEl.appendChild(cardsLayer);
 
   cellAddEl.addEventListener("click", (e) => {
-    if (!hoverCell) return;
     const btn = e.target.closest("button");
-    // A plain click on the highlighted cell (not a specific button) falls
-    // back to + Note, matching the onboarding hint. Explicit buttons choose
-    // their own type.
-    const type = btn ? btn.dataset.type : "note";
+    // Deprecated: a plain click on the cell body no longer creates a note.
+    // Only the explicit + Note / + Image / Paste buttons act, so a
+    // click-drag on the cell body pans the canvas instead (see grid.js).
+    if (!btn || !hoverCell) return;
+    const type = btn.dataset.type;
     if (!type) return;
     const { row, col } = hoverCell;
     hideAdd();
