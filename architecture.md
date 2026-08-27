@@ -1,8 +1,8 @@
-# Text Wall — Architecture
+# Pinboard — Architecture
 
 ## Overview
 
-Text Wall is a static, single-page application with no build step and no
+Pinboard is a static, single-page application with no build step and no
 server. The entry point is `index.html`, which loads ES-module JavaScript
 from `js/` and stylesheets from `css/`. All state lives in the browser:
 IndexedDB for persistence, an in-memory render cache for the visible viewport,

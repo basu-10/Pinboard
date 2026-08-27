@@ -1,4 +1,4 @@
-# Text Wall
+# Pinboard
 
 An infinite, pannable wall for placing individual text-note and image cards on a
 dotted grid. Cards are edited in a modal and persist in your browser via

@@ -1,8 +1,8 @@
-# Text Wall — Product
+# Pinboard — Product
 
 ## What it is
 
-Text Wall is a single-page, browser-based workspace for collecting lightweight
+Pinboard is a single-page, browser-based workspace for collecting lightweight
 cards — short text notes and images — arranged on an infinite, pannable grid.
 It runs entirely client-side with no server, no build step, and no user
 accounts. Everything the user creates is persisted in the browser via
