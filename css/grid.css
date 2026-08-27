@@ -305,3 +305,50 @@
 .empty-hint .hint-template:hover { box-shadow: var(--shadow-raised-lg), inset 0 0 0 1px var(--accent); }
 
 .empty-hint[hidden] { display: none; }
+
+/* --- corner pan joystick: a rate-based scroll control for the infinite board.
+       The knob's offset from center sets scroll speed; release springs it back.
+       Faint until hovered so it doesn't eat space, and fully isolated from the
+       canvas drag-pan (see scrollstick.js). --- */
+.scroll-stick {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, var(--base-3), var(--base-2));
+  box-shadow: var(--shadow-inset),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 14%, transparent);
+  touch-action: none;
+  cursor: grab;
+  opacity: 0.28;
+  transition: opacity 0.2s ease;
+}
+.viewport:hover .scroll-stick,
+.scroll-stick:hover,
+.scroll-stick.active {
+  opacity: 1;
+}
+
+.scroll-stick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 40px;
+  height: 40px;
+  margin-left: -20px;
+  margin-top: -20px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--accent-soft), var(--accent-faint));
+  box-shadow: var(--shadow-raised),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+  pointer-events: none; /* the well owns the gesture */
+  will-change: transform;
+}
+
+.scroll-stick.active { cursor: grabbing; }

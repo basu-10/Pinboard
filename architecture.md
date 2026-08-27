@@ -30,6 +30,7 @@ js/
   zip.js             dependency-free STORE-method ZIP writer
   state.js          shared state (camera pan, viewport geometry, constants)
   grid.js           pannable viewport: pointer drag, wheel zoom, camera
+  scrollstick.js    corner pan joystick: rate-based scroll control for the board
   cards.js          pin rendering, hover toolbar, resize, occupancy grid
   drag.js           DragSession class for move-to-drag lifecycle
   editor.js         text-note modal editor (open, save, delete)
@@ -98,6 +99,12 @@ into camera motion, applies CSS transforms to a "world" element that holds
 the pin layer, and fires an `onWindowChange` callback when the visible
 cell range shifts (so cards.js can re-render only what's needed). Subscribes
 via a camera callback for post-animation re-syncs (e.g. minimap).
+
+`scrollstick.js` complements the drag-pan with a corner **pan joystick**: a
+rate-based (velocity) control rather than a position-based scrollbar, which
+suits the unbounded board and works identically for mouse, touch, and pen.
+The knob's offset from center sets the scroll speed per axis and springs back
+on release; it is isolated from the canvas so it never starts a drag-pan.
 
 ### cards.js
 

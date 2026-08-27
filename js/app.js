@@ -8,6 +8,7 @@ import * as nav from "./nav.js";
 import * as history from "./history.js";
 import * as search from "./search.js";
 import * as dropzone from "./dropzone.js";
+import { initScrollStick } from "./scrollstick.js";
 import { createTemplatePicker } from "./templates.js";
 import { initTheme, mountThemeToggle } from "./theme.js";
 import * as quota from "./quota.js";
@@ -188,6 +189,8 @@ async function main() {
   grid.init(viewport, world, {
     onWindowChange: (w) => cards.render(w),
   });
+
+  initScrollStick(viewport);
 
   if (templateBtn) templateBtn.addEventListener("click", () => templates.open());
   if (emptyTemplateBtn) emptyTemplateBtn.addEventListener("click", () => templates.open());

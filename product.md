@@ -12,7 +12,10 @@ The experience is deliberately tactile: you pan by dragging empty space, place
 new pins by hovering an empty cell and choosing from a contextual toolbar,
 rearrange pins by dragging them, resize them with a right-click handle, and
 edit their contents in a modal dialog. Pins snap to grid cells, never float
-freely at fractional positions.
+freely at fractional positions. When dragging is awkward — on a touch device, or
+with a pointer that fights the canvas — a corner pan joystick offers a reliable
+alternative: push its knob in any direction and the board scrolls at a speed set
+by how far the knob is pushed, springing back to center on release.
 
 ## Core interactions
 
