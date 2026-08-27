@@ -82,8 +82,10 @@ export class DragSession {
     // Move by whole cells relative to where the drag began — never fractional.
     const dCol = Math.round((w.x - this.startWX) / CELL);
     const dRow = Math.round((w.y - this.startWY) / CELL);
-    const col = Math.max(0, this.startCol + dCol);
-    const row = Math.max(0, this.startRow + dRow);
+    // No origin: the canvas is unbounded in every direction, so a card may
+    // be anchored at any integer row/col, including negatives.
+    const col = this.startCol + dCol;
+    const row = this.startRow + dRow;
 
     if (this.isFree(row, col, this.card)) {
       this.row = row;
