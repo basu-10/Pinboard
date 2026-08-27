@@ -6,7 +6,6 @@ import {
   updateCardPosition,
   getBlob,
 } from "./db.js";
-import { didPan } from "./grid.js";
 import * as editor from "./editor.js";
 import * as image from "./image.js";
 
@@ -22,7 +21,7 @@ let occupiedRects = []; // { id, r0, c0, r1, c1 } — for overlap checks
 let lastWindow = null;
 let hoverCell = null;
 let drag = null; // active card-drag session
-let justDragged = false; // swallow the click that follows a real drag
+let ghostEl = null; // snap-target preview shown while dragging
 
 const DRAG_THRESHOLD = 3; // px before a press becomes a drag
 
@@ -125,17 +124,9 @@ function createCard(m) {
   el.dataset.id = m.id;
   el.dataset.type = m.type;
 
-  el.addEventListener("click", () => {
-    if (didPan()) return; // swallow click that ended a pan
-    if (justDragged) {
-      justDragged = false;
-      return;
-    }
-    if (m.type === "text") handlers.openCard(m.id, "text");
-    else handlers.openCard(m.id, "image");
-  });
-
-  // left-press starts a potential drag-to-move (snapped to whole cells)
+  // A press on the card is resolved in onCardUp: a press without movement
+  // opens the editor (tap); a press that moved is a drag (commit the move).
+  // Using pointerup (not click) avoids the click/drag race entirely.
   el.addEventListener("pointerdown", onCardDown);
 
   // right-click toggles interactive resize handles for this card
@@ -390,6 +381,48 @@ function onHandleDown(e) {
   el.addEventListener("pointerup", up);
 }
 
+/** Snap-target preview shown under the dragged card's prospective cell. */
+function ensureGhost() {
+  if (ghostEl) return ghostEl;
+  ghostEl = document.createElement("div");
+  ghostEl.className = "card-ghost";
+  ghostEl.hidden = true;
+  cardsLayer.appendChild(ghostEl);
+  return ghostEl;
+}
+
+function showGhost(row, col, card) {
+  const g = ensureGhost();
+  g.hidden = false;
+  g.style.left = `${col * CELL + 8}px`;
+  g.style.top = `${row * CELL + 8}px`;
+  g.style.width = `${card.colSpan * CELL - 16}px`;
+  g.style.height = `${card.rowSpan * CELL - 16}px`;
+}
+
+function hideGhost() {
+  if (ghostEl) ghostEl.hidden = true;
+}
+
+/** Reflect a committed move in the local occupancy sets (no full re-render). */
+function updateOccupancy(card, fromRow, fromCol, toRow, toCol) {
+  const rs = card.rowSpan;
+  const cs = card.colSpan;
+  for (let r = fromRow; r < fromRow + rs; r++) {
+    for (let c = fromCol; c < fromCol + cs; c++) occupied.delete(`${r},${c}`);
+  }
+  for (let r = toRow; r < toRow + rs; r++) {
+    for (let c = toCol; c < toCol + cs; c++) occupied.add(`${r},${c}`);
+  }
+  const rect = occupiedRects.find((o) => o.id === card.id);
+  if (rect) {
+    rect.r0 = toRow;
+    rect.c0 = toCol;
+    rect.r1 = toRow + rs - 1;
+    rect.c1 = toCol + cs - 1;
+  }
+}
+
 /** Begin a drag-to-move after a left press on a card body (not a resize handle). */
 function onCardDown(e) {
   if (e.button !== 0) return;
@@ -397,30 +430,27 @@ function onCardDown(e) {
   const card = el._card;
   if (!card) return;
 
+  // Stop native text selection / image drag from fighting our drag.
+  e.preventDefault();
+
   const w = pointerWorld(e);
   drag = {
     card,
     el,
-    pointerId: e.pointerId,
-    startX: e.clientX,
-    startY: e.clientY,
-    // offset from the card's snapped origin to the grab point, in world px
-    grabDX: w.x - (card.col * CELL + 8),
-    grabDY: w.y - (card.row * CELL + 8),
-    origRow: card.row,
-    origCol: card.col,
+    startWX: w.x,
+    startWY: w.y,
+    startCX: e.clientX,
+    startCY: e.clientY,
+    startRow: card.row,
+    startCol: card.col,
     row: card.row,
     col: card.col,
     moved: false,
   };
 
-  try {
-    el.setPointerCapture(e.pointerId);
-  } catch (_) {
-    /* ignore */
-  }
-  el.addEventListener("pointermove", onCardMove);
-  el.addEventListener("pointerup", onCardUp);
+  window.addEventListener("pointermove", onCardMove);
+  window.addEventListener("pointerup", onCardUp);
+  window.addEventListener("pointercancel", onCardUp);
 }
 
 function onCardMove(e) {
@@ -429,7 +459,7 @@ function onCardMove(e) {
 
   if (!drag.moved) {
     if (
-      Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) <=
+      Math.hypot(e.clientX - drag.startCX, e.clientY - drag.startCY) <=
       DRAG_THRESHOLD
     ) {
       return;
@@ -439,11 +469,11 @@ function onCardMove(e) {
   }
 
   const w = pointerWorld(e);
-  // Snap to integer cells — no fractional positioning.
-  let col = Math.round((w.x - drag.grabDX - 8) / CELL);
-  let row = Math.round((w.y - drag.grabDY - 8) / CELL);
-  row = Math.max(0, row);
-  col = Math.max(0, col);
+  // Move by whole cells relative to where the drag began — never fractional.
+  const dCol = Math.round((w.x - drag.startWX) / CELL);
+  const dRow = Math.round((w.y - drag.startWY) / CELL);
+  const col = Math.max(0, drag.startCol + dCol);
+  const row = Math.max(0, drag.startRow + dRow);
 
   if (isFree(row, col, card)) {
     drag.row = row;
@@ -451,38 +481,39 @@ function onCardMove(e) {
     el.style.left = `${col * CELL + 8}px`;
     el.style.top = `${row * CELL + 8}px`;
     el.classList.remove("card-invalid");
+    showGhost(row, col, card);
   } else {
     el.classList.add("card-invalid");
+    hideGhost();
   }
 }
 
 async function onCardUp() {
   if (!drag) return;
   const { el, card } = drag;
-  el.removeEventListener("pointermove", onCardMove);
-  el.removeEventListener("pointerup", onCardUp);
-  try {
-    el.releasePointerCapture(drag.pointerId);
-  } catch (_) {
-    /* ignore */
-  }
+  window.removeEventListener("pointermove", onCardMove);
+  window.removeEventListener("pointerup", onCardUp);
+  window.removeEventListener("pointercancel", onCardUp);
+  hideGhost();
   el.classList.remove("card-dragging");
 
   if (!drag.moved) {
+    // No movement → this was a tap, open the editor for this card.
     drag = null;
+    if (handlers.openCard) handlers.openCard(card.id, card.type);
     return;
   }
 
-  const { row, col, origRow, origCol } = drag;
+  const { row, col, startRow, startCol } = drag;
   el.classList.remove("card-invalid");
-  if (row !== origRow || col !== origCol) {
+  if (row !== startRow || col !== startCol) {
     card.row = row;
     card.col = col;
     el.style.left = `${col * CELL + 8}px`;
     el.style.top = `${row * CELL + 8}px`;
+    updateOccupancy(card, startRow, startCol, row, col);
     await updateCardPosition(card.id, row, col);
     if (handlers.onMove) handlers.onMove();
   }
-  justDragged = true;
   drag = null;
 }

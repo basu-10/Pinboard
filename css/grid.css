@@ -20,6 +20,8 @@
   gap: 8px;
   cursor: pointer;
   overflow: hidden;
+  touch-action: none;
+  user-select: none;
   transition: box-shadow 0.15s ease, transform 0.05s ease;
 }
 
@@ -121,6 +123,31 @@
   border-radius: 5px;
   cursor: nwse-resize;
 }
+
+/* --- drag-to-move (snapped to whole cells) --- */
+.card-dragging {
+  z-index: 100;
+  cursor: grabbing;
+  transition: none;
+  box-shadow: var(--shadow-raised-lg);
+  opacity: 0.92;
+}
+.card-dragging:active { transform: none; }
+
+.card-invalid {
+  box-shadow: var(--shadow-raised), inset 0 0 0 2px var(--danger);
+}
+
+/* snap-target preview shown beneath the dragged card */
+.card-ghost {
+  position: absolute;
+  border-radius: var(--radius);
+  background: var(--accent-faint);
+  box-shadow: inset 0 0 0 2px var(--accent);
+  z-index: 40;
+  pointer-events: none;
+}
+.card-ghost[hidden] { display: none; }
 
 /* --- empty-cell create affordance --- */
 .cell-add {
