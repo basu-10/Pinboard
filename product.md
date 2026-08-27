@@ -97,27 +97,31 @@ tasks), **Weekly Planner** (seven day columns, each with a notes area), and
 **Blank** (an empty canvas). Picking one seeds the board with pre-placed text
 pins so the structure is already there to fill in.
 
-The templates are color-coded so structure reads at a glance. Colors come from
-the same preset pin palette used elsewhere in the app:
+The picker is grouped into tabs — **Planning**, **Work**, **Creative**, and
+**Personal** — so templates are easy to scan. Every tab also offers a **Blank**
+canvas. The templates are color-coded so structure reads at a glance; the colors
+come from the same preset pin palette used elsewhere in the app.
 
-- **Kanban** — the three column headers (To Do, In Progress, Done) each get a
-  distinct color, but only the headers; the task cards stay uncolored.
-- **Weekly Planner** — each weekday is its own color and that color fills the
-  whole column: the day's header and its notes area share it, so each day reads
-  as a distinctly colored column.
-- **Life Areas** — five focus areas (Health, Career, Learning, Social, Fun),
-  each a colored column (header + notes area) like the weekly planner.
-- **Roadmap** — four phases (Discover, Design, Build, Launch), each a colored
-  column with its milestones.
-- **Brainstorm** — a central "Big Idea" pin with seven colored branch pins
-  arranged radially around it, each a different color.
-- **Blank** — an empty canvas.
+- **Planning** — Weekly Planner (seven colored day columns), Life Areas (five
+  colored focus-area columns), Roadmap (four colored phase columns), Habit
+  Tracker (habits as colored rows across the week), Meal Planner (seven colored
+  day columns for meals).
+- **Work** — Kanban (three colored column headers, neutral task cards), Sprint
+  Board (five colored stage headers), Bug Triage (four priority-colored columns).
+- **Creative** — Brainstorm (a central "Big Idea" with seven colored branch
+  pins radially around it), Story Outline (three colored act columns), Vision
+  Board (a 2×2 grid of large colored tiles).
+- **Personal** — Reading List (three colored status columns), Travel Plan
+  (seven colored day columns), Event Plan (four colored planning columns).
 
-Applying a template replaces the current pins and asks for confirmation first if
-the board already has content. On an empty board the same picker is also offered
-through a subtle "or start from a template" link in the onboarding hint, so the
-option is discoverable exactly when you would use it without adding permanent
-clutter to a working board.
+In column/row layouts, the color fills the whole column (header + notes area
+share one color) so each column reads as a distinctly colored block; in Kanban-
+style layouts only the column headers are colored and the task cards stay
+neutral. Applying a template replaces the current pins and asks for confirmation
+first if the board already has content. On an empty board the same picker is
+also offered through a subtle "or start from a template" link in the onboarding
+hint, so the option is discoverable exactly when you would use it without adding
+permanent clutter to a working board.
 
 ### Panning the canvas
 
