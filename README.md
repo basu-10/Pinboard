@@ -28,3 +28,12 @@ The site is plain static files with ES modules, so it runs on any static host:
 - **Any static server** — upload the directory; `index.html` is the entry.
 
 IndexedDB storage is per-browser, so each visitor keeps their own wall.
+
+## Pages
+
+- `index.html` — landing page with entry points to the board, library, and the
+  About tour.
+- `app.html` — the pannable board canvas.
+- `library.html` — saved-boards listing (open / delete / backup).
+- `about.html` — a scroll-driven presentation that demos the app with animated
+  mocks of its interface.

@@ -1,0 +1,646 @@
+/* --- about / presentation page --- */
+
+body.page-about {
+  display: block;
+  overflow: auto;
+  height: auto;
+  min-height: 100vh;
+}
+
+/* --- presentation top bar --- */
+.about-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  background: linear-gradient(145deg, var(--base-2), var(--base-3));
+  box-shadow: var(--shadow-raised), inset 0 -1px 0 var(--hairline);
+}
+.about-bar .brand { font-size: 17px; }
+.about-nav {
+  display: flex;
+  gap: 6px;
+  margin-left: 8px;
+}
+.about-nav a {
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--ink-soft);
+  padding: 7px 13px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(145deg, var(--base-2), var(--base-3));
+  box-shadow: var(--shadow-raised);
+  transition: box-shadow 0.15s ease, color 0.15s ease;
+}
+.about-nav a:hover { color: var(--accent-strong); box-shadow: var(--shadow-raised-lg), inset 0 0 0 1px var(--accent-soft); }
+.about-nav a.is-current { color: var(--accent-strong); box-shadow: var(--shadow-inset), inset 0 0 0 1px var(--accent-soft); }
+
+.about-bar .theme-toggle {
+  margin-left: auto;
+  width: 38px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+}
+
+/* --- slides --- */
+.slide {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 84px 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+.slide--split-flip .slide-copy { order: 2; }
+.slide--center {
+  grid-template-columns: 1fr;
+  text-align: center;
+  justify-items: center;
+  gap: 24px;
+}
+
+.slide-kicker {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  margin: 0 0 10px;
+}
+.slide-title {
+  margin: 0 0 14px;
+  font-size: 30px;
+  line-height: 1.18;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+.slide-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+.slide-text + .slide-text { margin-top: 12px; }
+
+.slide-cta {
+  display: inline-flex;
+  gap: 12px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+/* reveal-on-scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* --- hero slide --- */
+.slide--hero {
+  min-height: calc(100vh - 60px);
+  padding-top: 60px;
+  padding-bottom: 60px;
+}
+.hero-mark-lg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 84px;
+  height: 84px;
+  border-radius: var(--radius);
+  color: var(--accent-strong);
+  background: linear-gradient(145deg, var(--base-2), var(--base-3));
+  box-shadow: var(--shadow-raised);
+  margin-bottom: 6px;
+}
+.hero-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  margin: 0 0 8px;
+}
+.hero-title-lg {
+  margin: 0 0 16px;
+  font-size: 54px;
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  color: var(--accent-strong);
+}
+.hero-sub-lg {
+  margin: 0 auto;
+  max-width: 560px;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+/* --- mock stage (the frame that holds each animated UI) --- */
+.mock {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, var(--base-2), var(--base-3));
+  box-shadow: var(--shadow-raised);
+  overflow: hidden;
+  isolation: isolate;
+}
+.mock--tall { aspect-ratio: 1 / 1; }
+
+/* dotted board surface shared by canvas mocks */
+.mock-board {
+  position: absolute;
+  inset: 0;
+  background-color: var(--base);
+  background-image: radial-gradient(var(--dot) 1.6px, transparent 1.7px);
+  background-size: 56px 56px;
+  overflow: hidden;
+}
+.mock-world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  will-change: transform;
+}
+
+/* a single mock pin/card */
+.mpin {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, var(--base-2), var(--base));
+  box-shadow: var(--shadow-raised);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+.mpin--colored {
+  background: linear-gradient(145deg,
+    color-mix(in srgb, var(--pin) 30%, var(--base-2)),
+    color-mix(in srgb, var(--pin) 22%, var(--base)));
+  box-shadow: var(--shadow-raised), inset 0 0 0 3px color-mix(in srgb, var(--pin) 65%, transparent);
+}
+.mpin-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mpin-body {
+  flex: 1 1 auto;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mpin--img { padding: 0; }
+.mpin--img .mpin-pic {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, var(--accent-soft), var(--accent-faint));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* resize handles on a mock card */
+.mpin .mh { position: absolute; background: var(--accent); border-radius: 5px; opacity: 0.85; }
+.mh-r { right: 3px; top: 50%; transform: translateY(-50%); width: 8px; height: 42%; }
+.mh-b { bottom: 3px; left: 50%; transform: translateX(-50%); height: 8px; width: 42%; }
+.mh-c { right: 3px; bottom: 3px; width: 16px; height: 16px; }
+
+/* ghost / drop preview */
+.mghost {
+  position: absolute;
+  border-radius: var(--radius);
+  background: var(--accent-faint);
+  box-shadow: inset 0 0 0 2px var(--accent);
+  pointer-events: none;
+}
+
+/* highlighted empty cell (hover-to-add affordance) */
+.mcell {
+  position: absolute;
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, var(--accent-faint), var(--accent-soft));
+  box-shadow: var(--shadow-inset), inset 0 0 0 2px color-mix(in srgb, var(--accent) 38%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.mcell::before {
+  content: "Add to this cell";
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+  opacity: 0.8;
+}
+.mcell-row { display: flex; gap: 5px; }
+.mcell-row button {
+  padding: 5px 9px;
+  font-size: 11px;
+  color: var(--accent-strong);
+  box-shadow: var(--shadow-raised), inset 0 0 0 1px var(--accent-soft);
+}
+
+/* mock top bar inside a board frame */
+.mock-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: linear-gradient(145deg, var(--base-2), var(--base-3));
+  box-shadow: var(--shadow-raised), inset 0 -1px 0 var(--hairline);
+}
+.mock-top .mdot {
+  width: 26px; height: 24px;
+  border-radius: var(--radius-sm);
+  color: var(--accent-strong);
+  box-shadow: var(--shadow-raised), inset 0 0 0 1px var(--accent-soft);
+}
+.mock-top .mfield {
+  font-size: 11px;
+  color: var(--ink-soft);
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--base);
+  box-shadow: var(--shadow-inset);
+}
+
+/* mock minimap */
+.mock-map {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 5;
+  width: 96px;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(145deg, var(--base-2), var(--base-3));
+  box-shadow: var(--shadow-raised);
+}
+.mock-map .mmap-dot {
+  position: absolute;
+  width: 9px; height: 9px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) 55%, var(--base));
+}
+.mock-map .mmap-view {
+  position: absolute;
+  width: 30px; height: 22px;
+  border-radius: 4px;
+  border: 1.5px solid var(--accent-strong);
+}
+
+/* mock search panel */
+.mock-search {
+  position: absolute;
+  top: 42px;
+  left: 0;
+  bottom: 0;
+  width: 58%;
+  z-index: 6;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: linear-gradient(145deg, var(--base-2), var(--base-3));
+  box-shadow: var(--shadow-raised), inset -1px 0 0 var(--hairline);
+}
+.mock-search .ms-input {
+  font-size: 12px;
+  color: var(--ink-soft);
+  padding: 8px 11px;
+  border-radius: var(--radius-sm);
+  background: var(--base);
+  box-shadow: var(--shadow-inset);
+}
+.mock-search .ms-scope {
+  font-size: 10.5px;
+  color: var(--ink-soft);
+}
+.mock-search .ms-result {
+  font-size: 11px;
+  color: var(--ink);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--base);
+  box-shadow: var(--shadow-raised);
+}
+.mock-search .ms-result mark { background: var(--accent-soft); color: var(--ink); border-radius: 3px; padding: 0 2px; }
+.mock-search .ms-result .ms-pos { display: block; font-size: 9.5px; color: var(--ink-soft); margin-top: 3px; }
+
+/* mock template picker */
+.mock-tpl {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--base-2) 80%, var(--base)), var(--base));
+  box-shadow: var(--shadow-raised-lg);
+}
+.mock-tpl .mt-tabs { display: flex; gap: 6px; }
+.mock-tpl .mt-tabs span {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--base-3);
+  box-shadow: var(--shadow-raised);
+}
+.mock-tpl .mt-tabs span.is-on { color: var(--accent-strong); box-shadow: var(--shadow-inset), inset 0 0 0 1px var(--accent-soft); }
+.mock-tpl .mt-grid {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 9px;
+}
+.mock-tpl .mt-tile {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(145deg, var(--base-2), var(--base));
+  box-shadow: var(--shadow-raised);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow: hidden;
+}
+.mock-tpl .mt-tile .mt-bar { height: 7px; border-radius: 3px; background: var(--accent-soft); }
+.mock-tpl .mt-tile .mt-bar.mut { width: 60%; background: color-mix(in srgb, var(--accent) 22%, var(--base-3)); }
+.mock-tpl .mt-tile .mt-name { font-size: 9.5px; font-weight: 600; color: var(--ink); margin-top: auto; }
+
+/* mock library grid */
+.mock-lib { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px; }
+.mlib-card {
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, var(--base-2), var(--base));
+  box-shadow: var(--shadow-raised);
+  overflow: hidden;
+}
+.mlib-card .mlib-cover {
+  aspect-ratio: 4 / 3;
+  background: var(--base-3);
+  box-shadow: var(--shadow-inset);
+  position: relative;
+}
+.mlib-card .mlib-cover .mlib-chip {
+  position: absolute;
+  left: 8px; bottom: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--accent-strong);
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--base-2);
+  box-shadow: var(--shadow-raised);
+}
+.mlib-card .mlib-name { font-size: 11px; font-weight: 700; color: var(--ink); padding: 8px 10px 2px; }
+.mlib-card .mlib-meta { font-size: 9.5px; color: var(--ink-soft); padding: 0 10px 9px; }
+
+/* color swatch strip */
+.mswatches { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
+.mswatch {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  box-shadow: var(--shadow-raised), inset 0 0 0 1px color-mix(in srgb, var(--pin) 50%, transparent);
+  background: linear-gradient(145deg,
+    color-mix(in srgb, var(--pin) 34%, var(--base-2)),
+    color-mix(in srgb, var(--pin) 22%, var(--base)));
+}
+.mswatch.is-none {
+  background: linear-gradient(145deg, var(--base-2), var(--base-3));
+  box-shadow: var(--shadow-raised);
+  position: relative;
+}
+.mswatch.is-none::after {
+  content: "";
+  position: absolute; inset: 0;
+  margin: auto;
+  width: 14px; height: 2px;
+  background: var(--danger);
+  transform: rotate(-45deg);
+  border-radius: 2px;
+}
+
+/* joystick mock */
+.mock-stick {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 70px; height: 70px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(145deg, var(--base-3), var(--base-2));
+  box-shadow: var(--shadow-inset), inset 0 0 0 1px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.mock-stick .mknob {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--accent-soft), var(--accent-faint));
+  box-shadow: var(--shadow-raised), inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+/* floating caption label inside a mock */
+.mock-cap {
+  position: absolute;
+  z-index: 8;
+  left: 12px;
+  bottom: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-strong);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: linear-gradient(145deg, var(--base-2), var(--base-3));
+  box-shadow: var(--shadow-raised), inset 0 0 0 1px var(--accent-soft);
+}
+
+/* ============ animations (looping, presentation feel) ============ */
+
+/* 1. infinite pan */
+@keyframes pan-world {
+  0%   { transform: translate(0, 0); }
+  45%  { transform: translate(-230px, -120px); }
+  55%  { transform: translate(-230px, -120px); }
+  100% { transform: translate(0, 0); }
+}
+.anim-pan .mock-world { animation: pan-world 14s ease-in-out infinite; }
+
+/* 2. hover-to-add then a note appears */
+@keyframes cell-show {
+  0%, 10% { opacity: 0; transform: scale(0.9); }
+  20%, 70% { opacity: 1; transform: scale(1); }
+  82%, 100% { opacity: 0; transform: scale(0.9); }
+}
+@keyframes note-emerge {
+  0%, 70% { opacity: 0; transform: scale(0.85); }
+  82%, 100% { opacity: 1; transform: scale(1); }
+}
+.anim-add .mcell { animation: cell-show 9s ease-in-out infinite; }
+.anim-add .mpin--new { animation: note-emerge 9s ease-in-out infinite; }
+
+/* 3. drag to move with ghost */
+@keyframes card-drag {
+  0%, 12% { transform: translate(0, 0); }
+  40%, 60% { transform: translate(186px, 0); }
+  88%, 100% { transform: translate(0, 0); }
+}
+@keyframes ghost-show {
+  0%, 12% { opacity: 0; }
+  40%, 60% { opacity: 1; }
+  78%, 100% { opacity: 0; }
+}
+.anim-move .mpin--drag { animation: card-drag 11s ease-in-out infinite; z-index: 10; }
+.anim-move .mghost { animation: ghost-show 11s ease-in-out infinite; }
+
+/* 4. resize handles grow */
+@keyframes handle-pulse {
+  0%, 8% { opacity: 0; }
+  16%, 78% { opacity: 0.9; }
+  86%, 100% { opacity: 0; }
+}
+@keyframes card-grow {
+  0%, 18% { width: 120px; height: 120px; }
+  40%, 70% { width: 252px; height: 120px; }
+  86%, 100% { width: 120px; height: 120px; }
+}
+.anim-resize .mpin .mh { animation: handle-pulse 12s ease-in-out infinite; }
+.anim-resize .mpin--grow { animation: card-grow 12s ease-in-out infinite; }
+
+/* 5. color cycles through swatches onto a card */
+@keyframes pin-color-a {
+  0%, 30% { --pin: #5e7c8c; }
+  33%, 63% { --pin: #8c7a5e; }
+  66%, 96% { --pin: #6f8c5e; }
+  100% { --pin: #5e7c8c; }
+}
+@keyframes swatch-active {
+  0%, 30% { transform: scale(1); }
+  33%, 63% { transform: scale(1.18); }
+  66%, 96% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.anim-color .mpin--colored { animation: pin-color-a 13s linear infinite; }
+.anim-color .mswatch:nth-child(1) { animation: swatch-active 13s linear infinite; }
+.anim-color .mswatch:nth-child(2) { animation: swatch-active 13s linear infinite 11s; }
+.anim-color .mswatch:nth-child(3) { animation: swatch-active 13s linear infinite 8.6s; }
+/* (timing approximated; the loop still reads as "swatches light up in turn") */
+
+/* 6. template picker tiles shimmer / one selected */
+@keyframes tile-pick {
+  0%, 24% { box-shadow: var(--shadow-raised); }
+  30%, 60% { box-shadow: var(--shadow-raised), inset 0 0 0 2px var(--accent-soft); }
+  66%, 100% { box-shadow: var(--shadow-raised); }
+}
+.anim-tpl .mt-tile:nth-child(3) { animation: tile-pick 9s ease-in-out infinite; }
+
+/* 7. search panel slides + minimap view drifts */
+@keyframes search-in {
+  0%, 8% { transform: translateX(-100%); opacity: 0; }
+  22%, 86% { transform: translateX(0); opacity: 1; }
+  96%, 100% { transform: translateX(-100%); opacity: 0; }
+}
+@keyframes map-view {
+  0%, 22% { transform: translate(0, 0); }
+  50%, 86% { transform: translate(34px, 18px); }
+  100% { transform: translate(0, 0); }
+}
+.anim-search .mock-search { animation: search-in 12s ease-in-out infinite; }
+.anim-search .mmap-view { animation: map-view 12s ease-in-out infinite; }
+
+/* 8. library cards float in */
+@keyframes lib-in {
+  0% { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: none; }
+}
+.anim-lib .mlib-card:nth-child(1) { animation: lib-in 1s ease both 0.1s; }
+.anim-lib .mlib-card:nth-child(2) { animation: lib-in 1s ease both 0.25s; }
+.anim-lib .mlib-card:nth-child(3) { animation: lib-in 1s ease both 0.4s; }
+.anim-lib .mlib-card:nth-child(4) { animation: lib-in 1s ease both 0.55s; }
+
+/* 9. joystick knob wander */
+@keyframes stick-wander {
+  0%   { transform: translate(0, 0); }
+  30%  { transform: translate(14px, 8px); }
+  60%  { transform: translate(-10px, -12px); }
+  100% { transform: translate(0, 0); }
+}
+.anim-stick .mknob { animation: stick-wander 7s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-pan .mock-world,
+  .anim-add .mcell, .anim-add .mpin--new,
+  .anim-move .mpin--drag, .anim-move .mghost,
+  .anim-resize .mpin .mh, .anim-resize .mpin--grow,
+  .anim-color .mpin--colored,
+  .anim-tpl .mt-tile:nth-child(3),
+  .anim-search .mock-search, .anim-search .mmap-view,
+  .anim-stick .mknob { animation: none !important; }
+  .mpin--new, .mcell, .mghost, .mpin .mh, .mock-search { opacity: 1; }
+}
+
+/* --- scroll progress rail --- */
+.about-rail {
+  position: fixed;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 35;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.about-rail a {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--base-3);
+  box-shadow: var(--shadow-raised);
+  transition: box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+.about-rail a:hover { transform: scale(1.2); }
+.about-rail a.is-active {
+  background: var(--accent-soft);
+  box-shadow: var(--shadow-inset), inset 0 0 0 2px var(--accent);
+}
+@media (max-width: 720px) {
+  .about-rail { display: none; }
+  .slide { grid-template-columns: 1fr; gap: 28px; padding: 56px 22px; }
+  .slide--split-flip .slide-copy { order: 0; }
+  .hero-title-lg { font-size: 40px; }
+}
+
+/* closing CTA */
+.slide--cta .btn-primary,
+.slide--cta .btn-secondary { padding: 14px 30px; font-size: 15px; }

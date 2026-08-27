@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About — Pinboard</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/about.css" />
+  <meta name="color-scheme" content="light dark" />
+  <script>
+    (function () {
+      try {
+        var s = localStorage.getItem("pinboard-theme") || "system";
+        var dark = s === "dark" || (s === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body class="page-about">
+  <header class="about-bar">
+    <a class="brand" href="index.html">Pinboard</a>
+    <nav class="about-nav">
+      <a href="app.html">Board</a>
+      <a href="library.html">Library</a>
+      <a class="is-current" href="about.html" aria-current="page">About</a>
+    </nav>
+    <button type="button" id="themeToggle" class="icon-btn theme-toggle" aria-label="Toggle theme"></button>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="slide slide--hero slide--center reveal" id="s-hero">
+      <div>
+        <span class="hero-mark-lg" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="44" height="44">
+            <path fill="currentColor" d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 3h7v4h-7v-4Zm0-3h7v1h-7v-1Z"/>
+          </svg>
+        </span>
+        <p class="hero-eyebrow">A FOSS initiative by The NightCrafts</p>
+        <h1 class="hero-title-lg">Pinboard</h1>
+        <p class="hero-sub-lg">
+          An infinite, pannable board for your notes and images — everything
+          stays in your browser, no account and no server. This is a quick tour
+          of how it feels to use, rendered with a live mock of the app itself.
+        </p>
+        <div class="slide-cta">
+          <a class="btn-primary" href="app.html">Open Board</a>
+          <a class="btn-secondary" href="library.html">My Library</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. INFINITE CANVAS -->
+    <section class="slide reveal" id="s-canvas">
+      <div class="slide-copy">
+        <p class="slide-kicker">The surface</p>
+        <h2 class="slide-title">An infinite canvas you can roam</h2>
+        <p class="slide-text">
+          The board is one endless dotted grid. Drag empty space to pan anywhere,
+          or use the corner joystick when pointer drags are awkward. Arrow keys
+          nudge by a cell, and the camera follows your content as it grows.
+        </p>
+        <p class="slide-text">
+          Pins always snap to whole cells, so nothing ever floats at a fractional
+          offset — the layout stays tidy no matter how far you wander.
+        </p>
+      </div>
+      <div class="mock anim-pan anim-stick" aria-hidden="true">
+        <div class="mock-board">
+          <div class="mock-world">
+            <div class="mpin" style="left:40px; top:30px;">
+              <div class="mpin-title">Roadmap</div>
+              <div class="mpin-body">Q3 goals, themes, and the one big launch we keep deferring.</div>
+            </div>
+            <div class="mpin mpin--colored" style="--pin:#6f8c5e; left:240px; top:150px;">
+              <div class="mpin-title">Reading list</div>
+              <div class="mpin-body">Three books, one article, a long PDF.</div>
+            </div>
+            <div class="mpin mpin--img" style="left:120px; top:300px;">
+              <div class="mpin-pic"></div>
+            </div>
+            <div class="mpin" style="left:420px; top:60px;">
+              <div class="mpin-title">Sketch</div>
+              <div class="mpin-body">A rough layout idea worth keeping.</div>
+            </div>
+            <div class="mpin mpin--colored" style="--pin:#8c7a5e; left:300px; top:330px;">
+              <div class="mpin-title">Meal plan</div>
+              <div class="mpin-body">Mon fish, Tue veg, Wed leftovers.</div>
+            </div>
+          </div>
+        </div>
+        <div class="mock-stick"><div class="mknob"></div></div>
+        <span class="mock-cap">Drag to pan</span>
+      </div>
+    </section>
+
+    <!-- 2. ADD PINS -->
+    <section class="slide slide--split-flip reveal" id="s-add">
+      <div class="slide-copy">
+        <p class="slide-kicker">Capture</p>
+        <h2 class="slide-title">Hover a cell, drop in a pin</h2>
+        <p class="slide-text">
+          Hover an empty cell and it lights up with an inset accent ring — the
+          add options live right inside that cell, so the action reads as placing
+          content where you're looking.
+        </p>
+        <p class="slide-text">
+          Choose <strong>+ Note</strong>, <strong>+ Image</strong>, or
+          <strong>Paste</strong> from the clipboard. A single click on the cell
+          itself adds a note without aiming for a button. You can also drop files
+          straight from your computer.
+        </p>
+      </div>
+      <div class="mock anim-add" aria-hidden="true">
+        <div class="mock-board">
+          <div class="mpin" style="left:30px; top:24px;">
+            <div class="mpin-title">Standup</div>
+            <div class="mpin-body">Yesterday, today, blockers.</div>
+          </div>
+          <div class="mcell" style="left:250px; top:60px; width:120px; height:120px;">
+            <div class="mcell-row">
+              <button type="button">+ Note</button>
+              <button type="button">+ Image</button>
+              <button type="button">Paste</button>
+            </div>
+          </div>
+          <div class="mpin mpin--new mpin--colored" style="--pin:#5e7c8c; left:250px; top:60px;">
+            <div class="mpin-title">New note</div>
+            <div class="mpin-body">Typed right into the cell you hovered.</div>
+          </div>
+        </div>
+        <span class="mock-cap">Hover → add</span>
+      </div>
+    </section>
+
+    <!-- 3. MOVE -->
+    <section class="slide reveal" id="s-move">
+      <div class="slide-copy">
+        <p class="slide-kicker">Arrange</p>
+        <h2 class="slide-title">Drag to reorganize, snapped to the grid</h2>
+        <p class="slide-text">
+          Press and drag any pin to move it. A live ghost shows exactly where it
+          will land — green when the target cell is free, marked when it's taken.
+        </p>
+        <p class="slide-text">
+          Everything snaps to whole cells, so pins never overlap. Release to commit;
+          the move is saved and fully undoable.
+        </p>
+      </div>
+      <div class="mock anim-move" aria-hidden="true">
+        <div class="mock-board">
+          <div class="mghost" style="left:236px; top:30px; width:120px; height:120px;"></div>
+          <div class="mpin mpin--drag" style="left:50px; top:30px;">
+            <div class="mpin-title">To Do</div>
+            <div class="mpin-body">Drag me one cell to the right.</div>
+          </div>
+          <div class="mpin" style="left:50px; top:230px;">
+            <div class="mpin-title">Done</div>
+            <div class="mpin-body">Shipped and archived.</div>
+          </div>
+        </div>
+        <span class="mock-cap">Drag → snap</span>
+      </div>
+    </section>
+
+    <!-- 4. RESIZE -->
+    <section class="slide slide--split-flip reveal" id="s-resize">
+      <div class="slide-copy">
+        <p class="slide-kicker">Shape</p>
+        <h2 class="slide-title">Right-click to resize by cells</h2>
+        <p class="slide-text">
+          Right-click a pin to reveal resize handles on its edges and corner.
+          Drag a handle and the pin grows or shrinks by whole grid cells, never
+          colliding with its neighbors.
+        </p>
+        <p class="slide-text">
+          The new span is written the moment you let go — great for giving an
+          image room or stretching a note across a column.
+        </p>
+      </div>
+      <div class="mock anim-resize" aria-hidden="true">
+        <div class="mock-board">
+          <div class="mpin mpin--grow" style="left:120px; top:90px;">
+            <div class="mpin-title">Sprint board</div>
+            <div class="mpin-body">Drag a handle to span more cells.</div>
+            <span class="mh mh-r"></span>
+            <span class="mh mh-b"></span>
+            <span class="mh mh-c"></span>
+          </div>
+        </div>
+        <span class="mock-cap">Resize handles</span>
+      </div>
+    </section>
+
+    <!-- 5. COLOR -->
+    <section class="slide reveal" id="s-color">
+      <div class="slide-copy">
+        <p class="slide-kicker">Organize</p>
+        <h2 class="slide-title">Color pins to group at a glance</h2>
+        <p class="slide-text">
+          Give any pin an accent from three palettes of ten presets — Soft, Vivid,
+          and Earth — or clear it back to neutral. A colored pin shows a tinted
+          card and a colored ring, so categories read instantly across the board.
+        </p>
+      </div>
+      <div class="mock anim-color" aria-hidden="true">
+        <div class="mock-board">
+          <div class="mpin mpin--colored" style="left:50%; top:42%; transform:translate(-50%,-50%); --pin:#5e7c8c;">
+            <div class="mpin-title">Now colored</div>
+            <div class="mpin-body">The same accent hue, shifted per palette.</div>
+          </div>
+          <div class="mswatches" style="position:absolute; left:0; right:0; bottom:14px; z-index:9;">
+            <span class="mswatch" style="--pin:#5e7c8c;"></span>
+            <span class="mswatch" style="--pin:#8c7a5e;"></span>
+            <span class="mswatch" style="--pin:#6f8c5e;"></span>
+            <span class="mswatch is-none"></span>
+          </div>
+        </div>
+        <span class="mock-cap">Pick a swatch</span>
+      </div>
+    </section>
+
+    <!-- 6. TEMPLATES -->
+    <section class="slide slide--split-flip reveal" id="s-tpl">
+      <div class="slide-copy">
+        <p class="slide-kicker">Start fast</p>
+        <h2 class="slide-title">Begin from a template</h2>
+        <p class="slide-text">
+          Don't start from a blank grid. A template picker offers Kanban, weekly
+          planners, roadmaps, brainstorm webs, and more — grouped into Planning,
+          Work, Creative, and Personal tabs.
+        </p>
+        <p class="slide-text">
+          Each layout seeds the board with pre-placed, color-coded pins, so the
+          structure is already there to fill in.
+        </p>
+      </div>
+      <div class="mock anim-tpl" aria-hidden="true">
+        <div class="mock-board"></div>
+        <div class="mock-tpl">
+          <div class="mt-tabs">
+            <span class="is-on">Planning</span>
+            <span>Work</span>
+            <span>Creative</span>
+            <span>Personal</span>
+          </div>
+          <div class="mt-grid">
+            <div class="mt-tile"><div class="mt-bar"></div><div class="mt-bar mut"></div><span class="mt-name">Weekly</span></div>
+            <div class="mt-tile"><div class="mt-bar"></div><div class="mt-bar mut"></div><span class="mt-name">Roadmap</span></div>
+            <div class="mt-tile"><div class="mt-bar"></div><div class="mt-bar mut"></div><span class="mt-name">Kanban</span></div>
+            <div class="mt-tile"><div class="mt-bar"></div><div class="mt-bar mut"></div><span class="mt-name">Brainstorm</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. SEARCH + MINIMAP -->
+    <section class="slide reveal" id="s-find">
+      <div class="slide-copy">
+        <p class="slide-kicker">Find anything</p>
+        <h2 class="slide-title">Search and a self-aware minimap</h2>
+        <p class="slide-text">
+          The magnifier slides out a search panel: pick a scope (title, body, or
+          both) and matches list with the term highlighted and the pin's grid
+          position. Click one to fly the camera straight to it.
+        </p>
+        <p class="slide-text">
+          Nearby pins cluster into groups. The minimap shows every group plus your
+          viewport; jump between clusters, or zoom-to-fit to bring all content home.
+        </p>
+      </div>
+      <div class="mock anim-search" aria-hidden="true">
+        <div class="mock-board"></div>
+        <div class="mock-top">
+          <span class="mdot"></span>
+          <span class="mfield">Board title</span>
+          <span class="mdot"></span>
+          <span class="mdot"></span>
+        </div>
+        <div class="mock-search">
+          <div class="ms-input">meeting notes</div>
+          <div class="ms-scope">Scope: title + body</div>
+          <div class="ms-result"><mark>Meeting</mark> notes from Tuesday <span class="ms-pos">row 2, col 5</span></div>
+          <div class="ms-result">Weekly <mark>meeting</mark> agenda <span class="ms-pos">row 1, col 3</span></div>
+        </div>
+        <div class="mock-map">
+          <span class="mmap-dot" style="left:14px; top:12px;"></span>
+          <span class="mmap-dot" style="left:54px; top:20px;"></span>
+          <span class="mmap-dot" style="left:30px; top:48px;"></span>
+          <span class="mmap-view"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. LIBRARY -->
+    <section class="slide slide--split-flip reveal" id="s-lib">
+      <div class="slide-copy">
+        <p class="slide-kicker">Keep it</p>
+        <h2 class="slide-title">Save boards, back them up</h2>
+        <p class="slide-text">
+          Name the board and hit save to snapshot it into your Library — a cover
+          preview, pin counts, and the saved date. Open a board to load it back, or
+          delete it.
+        </p>
+        <p class="slide-text">
+          For safekeeping, export a board as a single JSON backup, import it
+          anywhere, or flatten it to a zip of plain <code>.txt</code> and image
+          files.
+        </p>
+      </div>
+      <div class="mock anim-lib" aria-hidden="true">
+        <div class="mock-lib">
+          <div class="mlib-card">
+            <div class="mlib-cover"><span class="mlib-chip">12 pins</span></div>
+            <div class="mlib-name">Q3 Roadmap</div>
+            <div class="mlib-meta">Saved 2 days ago</div>
+          </div>
+          <div class="mlib-card">
+            <div class="mlib-cover"><span class="mlib-chip">7 pins</span></div>
+            <div class="mlib-name">Reading List</div>
+            <div class="mlib-meta">Saved yesterday</div>
+          </div>
+          <div class="mlib-card">
+            <div class="mlib-cover"><span class="mlib-chip">21 pins</span></div>
+            <div class="mlib-name">Vision Board</div>
+            <div class="mlib-meta">Saved 5 days ago</div>
+          </div>
+          <div class="mlib-card">
+            <div class="mlib-cover"><span class="mlib-chip">4 pins</span></div>
+            <div class="mlib-name">Meal Plan</div>
+            <div class="mlib-meta">Saved 1 hr ago</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLOSING -->
+    <section class="slide slide--center reveal" id="s-cta">
+      <div>
+        <h2 class="slide-title" style="font-size:38px;">Build something. Keep it.</h2>
+        <p class="slide-text" style="max-width:520px;">
+          No sign-up, no server, no lock-in. Open a board and start pinning — your
+          work lives only in your browser.
+        </p>
+        <div class="slide-cta">
+          <a class="btn-primary" href="app.html">Open Board</a>
+          <a class="btn-secondary" href="index.html">Back to home</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="about-rail" aria-label="Section progress">
+    <a href="#s-hero" data-target="s-hero" title="Intro"></a>
+    <a href="#s-canvas" data-target="s-canvas" title="Infinite canvas"></a>
+    <a href="#s-add" data-target="s-add" title="Add pins"></a>
+    <a href="#s-move" data-target="s-move" title="Move"></a>
+    <a href="#s-resize" data-target="s-resize" title="Resize"></a>
+    <a href="#s-color" data-target="s-color" title="Color"></a>
+    <a href="#s-tpl" data-target="s-tpl" title="Templates"></a>
+    <a href="#s-find" data-target="s-find" title="Search"></a>
+    <a href="#s-lib" data-target="s-lib" title="Library"></a>
+    <a href="#s-cta" data-target="s-cta" title="Get started"></a>
+  </nav>
+
+  <footer class="site-footer">
+    <p>Made with <span class="heart" aria-label="love">♥</span> by Asesh Basu.</p>
+    <p>Part of &lsquo;The NightCrafts&rsquo; (A FOSS initiative).</p>
+  </footer>
+
+  <script type="module">
+    import { initTheme, mountThemeToggle } from "./js/theme.js";
+    import { initAbout } from "./js/about.js";
+    initTheme();
+    mountThemeToggle(document.getElementById("themeToggle"));
+    initAbout();
+  </script>
+</body>
+</html>

@@ -7,9 +7,10 @@ server. The site has three HTML surfaces, all loading ES-module JavaScript
 from `js/` and stylesheets from `css/`, and all sharing one browser IndexedDB
 database:
 
-- `index.html` — the landing page: two entry points into the board and the library.
+- `index.html` — the landing page: entry points into the board, library, and About tour.
 - `app.html` — the pannable board (the original single-page app).
 - `library.html` — lists saved boards and lets you open or delete them.
+- `about.html` — a scroll-driven presentation tour with animated mocks of the app.
 
 All state lives in the browser: IndexedDB for persistence, an in-memory render
 cache for the visible viewport, and a few module-level variables for transient
@@ -26,6 +27,7 @@ css/                stylesheets (base, grid, modal, nav, site)
 js/
   app.js            board bootstrap: wires modules, save-to-library, ?board restore
   library.js        library page: load boards, render pins, delete
+  about.js          about page: scroll-reveal of slides + section progress rail
   backup.js          library robustness: JSON backup/restore + zip export
   zip.js             dependency-free STORE-method ZIP writer
   state.js          shared state (camera pan, viewport geometry, constants)
@@ -255,6 +257,15 @@ Open (links to `app.html?board=<id>`) and Delete actions. Deleting calls
 **Backup** action (JSON export) and a **Save as zip** action; the Library header
 holds an **Import backup** button that reads a JSON backup file and stores it as
 a new board via `putBoard`.
+
+### about.js
+
+Powers the About presentation page. It uses an IntersectionObserver to reveal
+each slide as it scrolls into view and to keep the fixed side progress rail in
+sync with the section currently centered in the viewport. Rail dots smooth-scroll
+to their section on click. The page owns no app state — its mocks are static,
+decorative markup animated purely through CSS so the tour stays dependency-free
+and works without a server.
 
 ### backup.js
 

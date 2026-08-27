@@ -240,10 +240,27 @@ app is caught and routed to this same message.
 
 ## Landing and navigation
 
-The app opens on a landing page with two entry points: **Open Board** drops you
-straight into the pannable canvas, and **My Library** shows every saved board.
-The board and the library share the same browser storage, so boards saved on one
-device in a given browser are visible in the library on that same browser.
+The app opens on a landing page with three entry points: **Open Board** drops you
+straight into the pannable canvas, **My Library** shows every saved board, and
+**About** opens a presentation-style tour of the app. The board and the library
+share the same browser storage, so boards saved on one device in a given browser
+are visible in the library on that same browser.
+
+The board header and the library header also carry an **About** link, so the tour
+is reachable from anywhere in the app.
+
+### The About tour
+
+The About page is a scroll-driven presentation that showcases how Pinboard feels
+to use. Rather than describing features in prose alone, each section renders a
+quietly animated mock of the real interface — the same dotted canvas, pins,
+top bar, minimap, search panel, template picker, and library cards — so visitors
+see the features in motion: the board panning, a cell lighting up to accept a new
+pin, a pin dragging and snapping to a grid cell, resize handles, the color
+palette applying to a card, a template being picked, search results flying to a
+pin, and saved boards in the library. The page follows the same three-state theme
+(system / light / dark) as the rest of the app and respects reduced-motion
+preferences by freezing the animations.
 
 ## Data model
 
