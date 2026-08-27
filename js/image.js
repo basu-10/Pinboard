@@ -110,7 +110,7 @@ function resizeImage(file) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
-    img.onload = () => {
+    img.onload = async () => {
       const maxW = 1920;
       const maxH = 1080;
       let w = img.naturalWidth || img.width;
@@ -125,24 +125,52 @@ function resizeImage(file) {
       canvas.getContext("2d").drawImage(img, 0, 0, w, h);
       URL.revokeObjectURL(url);
 
-      canvas.toBlob(
-        async (blob) => {
-          if (!blob) {
-            reject(new Error("toBlob failed"));
-            return;
-          }
-          const thumb = await makeThumb(img, 200);
-          resolve({ blob, thumb });
-        },
-        "image/webp",
-        0.9
-      );
+      let blob = null;
+      try {
+        blob = await canvasToBlob(canvas, "image/webp", 0.9);
+        if (!blob) blob = await canvasToBlob(canvas, "image/png");
+        if (!blob) blob = await canvasToBlob(canvas, "image/jpeg", 0.9);
+      } catch (e) {
+        reject(e);
+        return;
+      }
+      if (!blob) {
+        reject(new Error("toBlob failed"));
+        return;
+      }
+      const thumb = await makeThumb(img, 200);
+      resolve({ blob, thumb });
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
       reject(new Error("image decode failed"));
     };
     img.src = url;
+  });
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve, reject) => {
+    if (typeof canvas.toBlob !== "function") {
+      // Very old engines: synthesize a Blob from a data URL.
+      try {
+        const url = canvas.toDataURL(type, quality);
+        const [head, b64] = url.split(",");
+        const mime = (head.match(/:(.*?);/) || [])[1] || "image/png";
+        const bin = atob(b64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        resolve(new Blob([bytes], { type: mime }));
+      } catch (e) {
+        reject(e);
+      }
+      return;
+    }
+    canvas.toBlob(
+      (blob) => resolve(blob),
+      type,
+      quality
+    );
   });
 }
 
