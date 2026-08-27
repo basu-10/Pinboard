@@ -7,6 +7,7 @@ import * as image from "./image.js";
 import * as nav from "./nav.js";
 import * as history from "./history.js";
 import * as search from "./search.js";
+import * as dropzone from "./dropzone.js";
 import { createTemplatePicker } from "./templates.js";
 
 async function pasteAt(row, col) {
@@ -186,6 +187,7 @@ async function main() {
 
   await nav.init();
   search.init();
+  dropzone.init(viewport);
 
   saveBoardBtn.addEventListener("click", () => {
     saveBoardBtn.disabled = true;

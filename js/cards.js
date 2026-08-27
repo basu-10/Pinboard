@@ -413,6 +413,11 @@ export function hideAdd() {
   fadeOut();
 }
 
+/** True if no card currently occupies the single cell at (row,col). */
+export function isCellFree(row, col) {
+  return !occupied.has(`${row},${col}`);
+}
+
 /** Max colSpan (>=1) for `card` given its row span, without overlapping another card. */
 function maxColSpan(card, rowSpan) {
   let max = MAX_SPAN;

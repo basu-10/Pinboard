@@ -198,8 +198,10 @@ async function onFile(e) {
   }
 }
 
-/** Build and store an image card from a File/Blob, then open the viewer. */
-async function createFromBlob(file, row, col) {
+/** Build and store an image card from a File/Blob. Pass { open: false } to
+ *  skip opening the viewer (e.g. when batch-importing via drag-and-drop). */
+export async function createFromBlob(file, row, col, opts = {}) {
+  const openViewer = opts.open !== false;
   const id = uuid();
   current = { id, row, col, rowSpan: 1, colSpan: 1, isNew: true };
   const { blob, thumb } = await resizeImage(file);
@@ -221,7 +223,7 @@ async function createFromBlob(file, row, col) {
   await putCard(meta, imageBlob);
   history.recordAddCard(meta, imageBlob);
   onChange(id);
-  open(id);
+  if (openViewer) open(id);
 }
 
 function resizeImage(file) {

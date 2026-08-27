@@ -34,7 +34,8 @@ js/
   drag.js           DragSession class for move-to-drag lifecycle
   editor.js         text-note modal editor (open, save, delete)
   image.js          image viewer modal + image resize/thumbnail encoding
-  colorPalette.js   preset pin colors + reusable swatch picker UI
+   colorPalette.js   preset pin colors + reusable swatch picker UI
+   dropzone.js       OS file drag-and-drop import + force-decode error modal
    db.js             IndexedDB layer (meta + blob + boards stores, window queries)
    nav.js            minimap, island clustering, navigation + jump/fit controls
    search.js         slide-out note search panel (magnifier toggle, text index)
@@ -265,8 +266,13 @@ stack. The module owns the undo/redo button disabled state and exposes
  6. **Color**: modal picker → `db.updateCardColor` (image) or saved with the
     note meta (text) → `history.recordEditCard` (image) → `onChange` re-renders
     the card with its tinted background and colored ring.
- 7. **Paste**: toolbar Paste click → `app.js.pasteAt` → `navigator.clipboard.read()`
-    → dispatch image/text → `db.putCard` → `history.recordAddCard` → `onChange`.
+  7. **Paste**: toolbar Paste click → `app.js.pasteAt` → `navigator.clipboard.read()`
+     → dispatch image/text → `db.putCard` → `history.recordAddCard` → `onChange`.
+  8. **Drop import**: OS file drag over the viewport highlights the target cell;
+     `drop` → `dropzone.importFiles` → per file: image MIME → `image.createFromBlob`
+     (viewer suppressed), else `readText` (UTF-8 with binary detection) →
+     `editor.createFromText`. Decode failures are queued and surfaced in a modal
+     offering Force-as-text / Force-as-image, both reusing the same pipelines.
  8. **Undo/redo**: button click or Ctrl+Z / Ctrl+Y → `history.undo()` /
     `history.redo()` → command performs the inverse/repeat DB operation →
     `notify(id)` invalidates the affected pin's cache and re-renders.
@@ -285,9 +291,15 @@ stack. The module owns the undo/redo button disabled state and exposes
   multiples, ensuring pins never overlap or land at fractional offsets.
 - **Unified pointerup**: the drag's pointerup is the single resolution point —
   it either commits a move or opens the pin, eliminating the click/drag race.
-- **Clipboard as first-class**: paste reuses the exact same image/text
-  creation pipeline as the file picker and editor, so pasted content behaves
-  identically to manually added content.
+ - **Clipboard as first-class**: paste reuses the exact same image/text
+   creation pipeline as the file picker and editor, so pasted content behaves
+   identically to manually added content.
+ - **Drag-and-drop reuses import pipelines**: OS file drops route through the
+   same `image.createFromBlob` and `editor.createFromText` paths used by the
+   file picker and clipboard, so a dropped file is indistinguishable from a
+   manually added pin. A failed decode does not fail silently — it is queued
+   and a single modal walks the user through force-decoding, keeping every
+   import path honest about errors.
 - **Command pattern for undo/redo**: every board mutation is wrapped in a small
   command object (`undo`/`redo` methods) pushed onto a bounded stack. This keeps
   the history concern isolated from the interaction code — cards.js, editor.js,

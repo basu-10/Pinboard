@@ -38,13 +38,24 @@ time users. The hint disappears as soon as any pin exists anywhere on the board.
   image is resized to a maximum of 1920×1080, stored as a full-resolution WebP
   blob, and displayed as a pin with a thumbnail and a download link. Clicking
   the pin opens a full-size viewer modal.
-- **Paste** — reads from the system clipboard (requires permission in the
-  browser). If the clipboard contains an image, it is placed as an image pin
-  the same way the file picker works; if it contains text, it is placed as a
-  note pin. If the clipboard cannot be read or contains unsupported content,
-  the error is reported in the browser console rather than failing silently.
-  While the paste is in progress the toolbar does not reappear until the
-  operation settles.
+ - **Paste** — reads from the system clipboard (requires permission in the
+   browser). If the clipboard contains an image, it is placed as an image pin
+   the same way the file picker works; if it contains text, it is placed as a
+   note pin. If the clipboard cannot be read or contains unsupported content,
+   the error is reported in the browser console rather than failing silently.
+   While the paste is in progress the toolbar does not reappear until the
+   operation settles.
+ - **Drop files from your computer** — dragging one or more files from the
+   desktop or a file manager directly onto the board imports them. While a
+   drag is in progress the target cell highlights with a "Drop here" preview.
+   Image files (by MIME type) become image pins; everything else is attempted
+   as UTF-8 text and becomes a note pin. Multiple files are placed in nearby
+   free cells rather than overlapping. Files that cannot be decoded — a corrupt
+   image, or a file that looks binary rather than text — raise a modal that
+   explains the problem and offers two force-decode options: **Force as text**
+   (read the raw bytes as UTF-8) and **Force as image** (try to render the
+   bytes as an image). Each option shows inline guidance about when it will and
+   won't work, so the user can make an informed choice instead of guessing.
 
 ### Moving pins
 
