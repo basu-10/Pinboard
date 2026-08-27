@@ -11,7 +11,10 @@
   <header class="site-head">
     <a class="brand" href="index.html">Pinboard</a>
     <span class="site-head-title">Library</span>
+    <span class="site-head-spacer"></span>
+    <button type="button" id="importBtn" class="topbar-link" title="Import a board backup (JSON)">Import backup</button>
     <a class="topbar-link" href="app.html">+ New board</a>
+    <input type="file" id="importFile" accept="application/json,.json" hidden />
   </header>
 
   <main class="library">

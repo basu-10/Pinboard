@@ -84,6 +84,24 @@ Dragging on empty space (not on a card or the cell toolbar) pans the
 viewport. Keyboard arrow keys pan by one cell, or by a larger step while
 shifting. The grid is dotted and scrolls infinitely in all directions.
 
+### Group navigation and the minimap
+
+Cards that sit near each other on the grid are clustered into **groups** (a
+loose cluster of adjacent cards). A navigation panel in the corner of the wall
+always shows the group count and the current group's position within it, with
+previous/next buttons that fly the camera to each group in turn.
+
+The minimap — a small overview of every group plus a viewport indicator — is
+**collapsed by default** so the panel stays unobtrusive and only the navigation
+header (title, count, and the group buttons) is visible. A chevron toggle on the
+header slides the minimap open and closed manually; the open/closed state is
+reflected by the chevron's orientation. While you are panning or otherwise
+moving the camera, the minimap briefly slides itself open for added spatial
+awareness and then collapses again on its own once you stop moving. Clicking a
+group in the minimap, or clicking empty space in it, flies the camera to that
+group. When the viewport drifts away from all content, a "Return to content"
+pill appears to bring you back.
+
 ## Saving to the library
 
 While working in the wall, you can give it a title (the "Board title" field in
@@ -98,6 +116,22 @@ From the Library you can **Open** a board — this loads it back onto the wall,
 replacing the current cards — or **Delete** it. Opening a board is a one-way
 swap of the working wall, so the app confirms before overwriting anything
 already on the canvas.
+
+### Backing up and moving boards
+
+Each saved board in the Library carries two extra actions so your work can
+leave the browser and come back:
+
+- **Backup** exports the entire board — every card's text and every image blob —
+  as a single self-contained JSON file. This is a full, lossless snapshot you can
+  keep as a long-term backup or move between browsers and devices.
+- **Import backup** (in the Library header) reads one of those JSON files and
+  adds the board back into the Library. Imported boards get a fresh identity, so
+  an import never silently overwrites a board you already have.
+- **Save as zip** flattens the board into plain files: each note becomes a
+  `.txt` file and each image becomes a `.png` or `.jpg` file, all collected into
+  a single zip archive named after the board. This is the easiest way to get your
+  content out as ordinary, openable files.
 
 ## Landing and navigation
 

@@ -1,7 +1,14 @@
 import { initDB, getAllBoards, deleteBoard } from "./db.js";
+import {
+  exportBoardJSON,
+  exportBoardZip,
+  importBoardJSON,
+} from "./backup.js";
 
 const grid = document.getElementById("libraryGrid");
 const emptyEl = document.getElementById("libraryEmpty");
+const importBtn = document.getElementById("importBtn");
+const importFile = document.getElementById("importFile");
 
 function fmtDate(ts) {
   if (!ts) return "";
@@ -20,6 +27,24 @@ function cardCounts(c) {
   if (t) parts.push(`${t} note${t === 1 ? "" : "s"}`);
   if (i) parts.push(`${i} image${i === 1 ? "" : "s"}`);
   return parts.join(" · ") || "empty board";
+}
+
+function toast(msg, isError = false) {
+  let el = document.querySelector(".toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.className = "toast";
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.style.color = isError ? "var(--danger)" : "";
+  el.hidden = false;
+  el.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => {
+    el.classList.remove("show");
+    setTimeout(() => (el.hidden = true), 250);
+  }, 2400);
 }
 
 function buildCard(board) {
@@ -61,7 +86,23 @@ function buildCard(board) {
   del.addEventListener("click", () => onDelete(board, el));
   actions.append(open, del);
 
-  el.append(cover, body, actions);
+  const actions2 = document.createElement("div");
+  actions2.className = "board-actions-2";
+  const exportBtn = document.createElement("button");
+  exportBtn.type = "button";
+  exportBtn.className = "btn-ghost";
+  exportBtn.textContent = "Backup";
+  exportBtn.title = "Export this board as a JSON backup (notes + images)";
+  exportBtn.addEventListener("click", () => onExport(board));
+  const zipBtn = document.createElement("button");
+  zipBtn.type = "button";
+  zipBtn.className = "btn-ghost";
+  zipBtn.textContent = "Save as zip";
+  zipBtn.title = "Download all cards as .txt and .png/.jpg files in a zip";
+  zipBtn.addEventListener("click", () => onZip(board));
+  actions2.append(exportBtn, zipBtn);
+
+  el.append(cover, body, actions, actions2);
   return el;
 }
 
@@ -71,6 +112,41 @@ async function onDelete(board, el) {
   await deleteBoard(board.id);
   el.remove();
   refreshEmpty();
+}
+
+async function onExport(board) {
+  try {
+    await exportBoardJSON(board);
+    toast(`Backed up “${board.title || "Untitled board"}”`);
+  } catch (err) {
+    console.error("Failed to export board:", err);
+    toast("Could not create backup", true);
+  }
+}
+
+async function onZip(board) {
+  try {
+    await exportBoardZip(board);
+    toast(`Saved “${board.title || "Untitled board"}” as zip`);
+  } catch (err) {
+    console.error("Failed to export board as zip:", err);
+    toast(err.message || "Could not create zip", true);
+  }
+}
+
+async function onImportFile() {
+  const file = importFile.files && importFile.files[0];
+  importFile.value = "";
+  if (!file) return;
+  try {
+    const board = await importBoardJSON(file);
+    grid.prepend(buildCard(board));
+    refreshEmpty();
+    toast(`Imported “${board.title || "Untitled board"}”`);
+  } catch (err) {
+    console.error("Failed to import board:", err);
+    toast(err.message || "Import failed", true);
+  }
 }
 
 function refreshEmpty() {
@@ -83,6 +159,9 @@ async function main() {
   grid.innerHTML = "";
   for (const b of boards) grid.appendChild(buildCard(b));
   refreshEmpty();
+
+  importBtn.addEventListener("click", () => importFile.click());
+  importFile.addEventListener("change", onImportFile);
 }
 
 main();

@@ -26,6 +26,8 @@ css/                stylesheets (base, grid, modal, nav, site)
 js/
   app.js            wall bootstrap: wires modules, save-to-library, ?board restore
   library.js        library page: load boards, render cards, delete
+  backup.js          library robustness: JSON backup/restore + zip export
+  zip.js             dependency-free STORE-method ZIP writer
   state.js          shared state (camera pan, viewport geometry, constants)
   grid.js           pannable viewport: pointer drag, wheel zoom, camera
   cards.js          card rendering, hover toolbar, resize, occupancy grid
@@ -131,16 +133,42 @@ which replaces the live wall with a board's stored cards.
 
 ### nav.js
 
-Provides a minimap overview of all cards (island clustering for density) and
-navigation controls. Subscribes to camera changes from grid.js to keep the
-minimap position in sync.
+Provides island clustering (group detection), a minimap overview of all cards,
+and the navigation controls. The minimap is collapsed by default — only the
+navigation header (group title, count, and previous/next buttons) renders — and
+a chevron toggle in the header slides it open or closed. While the camera moves
+(grid.js fires a camera callback), the minimap briefly reveals itself for
+spatial context and then auto-collapses after a short idle period; the chevron
+lets the user pin it open manually. Clicking a group (or empty space) in the
+minimap flies the camera to that cluster. nav.js subscribes to camera changes
+from grid.js to keep the minimap's viewport indicator in sync, and recomputes
+the island clusters whenever the wall changes.
 
 ### library.js
 
 Renders the Library page. On load it calls `getAllBoards` and builds a card for
 each board showing a cover preview, title, card counts, and saved date, with
 Open (links to `app.html?board=<id>`) and Delete actions. Deleting calls
-`deleteBoard` and removes the card from the DOM.
+`deleteBoard` and removes the card from the DOM. Each card also exposes a
+**Backup** action (JSON export) and a **Save as zip** action; the Library header
+holds an **Import backup** button that reads a JSON backup file and stores it as
+a new board via `putBoard`.
+
+### backup.js
+
+Implements the Library's robustness features. `exportBoardJSON` serializes a
+board (including image blobs, embedded as data URLs) into a self-contained JSON
+file for backup. `importBoardJSON` reads such a file, rehydrates image blobs from
+their data URLs, assigns a fresh board id, and writes it back through `putBoard`.
+`exportBoardZip` flattens every card into a plain file — notes to `.txt`, images
+to `.png` (or kept as `.jpg`) — and packages them with `makeZip`.
+
+### zip.js
+
+A small, dependency-free ZIP writer using the STORE method (no compression). It
+assembles local file headers, a central directory, and the end-of-central-
+directory record, flagging filenames as UTF-8, and returns a `Blob` the browser
+can download. Used by `backup.js` for the zip export.
 
 ### history.js
 
