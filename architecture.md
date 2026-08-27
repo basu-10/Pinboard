@@ -35,9 +35,10 @@ js/
   editor.js         text-note modal editor (open, save, delete)
   image.js          image viewer modal + image resize/thumbnail encoding
   colorPalette.js   preset pin colors + reusable swatch picker UI
-  db.js             IndexedDB layer (meta + blob + boards stores, window queries)
-  nav.js            minimap, island clustering, navigation controls
-  history.js        undo/redo command stack
+   db.js             IndexedDB layer (meta + blob + boards stores, window queries)
+   nav.js            minimap, island clustering, navigation + jump/fit controls
+   search.js         slide-out note search panel (magnifier toggle, text index)
+   history.js        undo/redo command stack
 ```
 
 ## Module responsibilities
@@ -158,6 +159,30 @@ lets the user pin it open manually. Clicking a group (or empty space) in the
 minimap flies the camera to that cluster. nav.js subscribes to camera changes
 from grid.js to keep the minimap's viewport indicator in sync, and recomputes
 the island clusters whenever the board changes.
+
+Two further controls live in the header. A **Jump** button toggles a popover
+that lists the most recently visited groups (tracked in an in-memory
+`recentIslands` list, capped and de-duplicated, cleared on every board change),
+each labelled with its group number and grid position; selecting one frames that
+group. The minimap rings the newest entry (`recent` class) so the last-visited
+cluster is visible at a glance. A **Zoom to fit all** button (frameAll) computes
+the union bounding box of every group and centers it in the viewport; because
+the board has no scale step, this is a center-all rather than a true zoom.
+
+### search.js
+
+Implements the slide-out note search. A magnifying-glass button in the top bar
+toggles a panel that slides in from the left; it is hidden by default, so search
+is not a permanently visible control. The panel holds a text input, a **scope**
+selector (title and body / title only / body only), a result count, and a
+scrollable result list. On each (debounced) keystroke it queries every text pin
+from the database and matches the query against title and/or body per the chosen
+scope. Note text is loaded through a small in-memory cache (mirroring
+cards.js's textCache) keyed by pin id, so repeated searches don't re-read
+IndexedDB. Each result shows the title, a body snippet with the matched term
+wrapped in `<mark>`, and the note's grid position; clicking a result flies the
+camera to that note (via grid.setPan) and opens it. The cache is invalidated
+from app.js's change handler when a note is edited.
 
 ### library.js
 

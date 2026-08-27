@@ -112,6 +112,28 @@ group in the minimap, or clicking empty space in it, flies the camera to that
 group. When the viewport drifts away from all content, a "Return to content"
 pill appears to bring you back.
 
+Two extra controls sit in the navigation header alongside the prev/next
+buttons. A **Jump** button opens a popover that lists the groups you have
+visited most recently, newest first, each showing its group number and grid
+position; clicking one flies the camera straight to that group. The minimap
+also rings the most recently visited group so you can see where you just were.
+A **Zoom to fit all** button flies the camera to the center of every group at
+once, so the whole board's content comes back into view no matter how far you
+have panned.
+
+### Searching notes
+
+The board hides a **magnifying-glass** button in the top bar. It is not a
+permanently visible search box — pressing the icon slides a search panel out
+from the left edge of the screen. The panel has a text field and a **scope**
+selector that lets you choose where to look: the note title and body together,
+the title only, or the body only. As you type, Pinboard searches the full text
+of every note (already held in memory after first render, so it does not
+re-read the database on each keystroke) and lists each matching note with its
+title, a short snippet of the body with the matched term highlighted, and the
+note's grid position. Clicking a result flies the camera to that note and
+opens it, so you can jump from a search hit straight to the pin.
+
 ## Saving to the library
 
 While working in the board, you can give it a title (the "Board title" field in

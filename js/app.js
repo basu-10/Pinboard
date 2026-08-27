@@ -6,6 +6,7 @@ import * as editor from "./editor.js";
 import * as image from "./image.js";
 import * as nav from "./nav.js";
 import * as history from "./history.js";
+import * as search from "./search.js";
 
 async function pasteAt(row, col) {
   if (!navigator.clipboard || !navigator.clipboard.read) {
@@ -146,6 +147,7 @@ async function main() {
     if (id) {
       cards.invalidateCache(id);
       image.invalidateCache(id);
+      search.invalidateText(id);
     }
     cards.renderCurrent();
     nav.recompute();
@@ -172,6 +174,7 @@ async function main() {
   });
 
   await nav.init();
+  search.init();
 
   saveBoardBtn.addEventListener("click", () => {
     saveBoardBtn.disabled = true;

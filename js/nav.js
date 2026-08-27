@@ -10,9 +10,14 @@ const ISLAND_GAP = 1;
 let islands = []; // [{ x, y, w, h, cx, cy, count }] in world px, spatial order
 let currentIndex = -1; // last island framed via prev/next/minimap
 
-let navPanel, prevBtn, nextBtn, countEl, chevronBtn;
+let navPanel, prevBtn, nextBtn, countEl, chevronBtn, jumpBtn, fitBtn, jumpPop;
 let mmCanvas, mmTotal;
 let pillEl;
+
+// Most-recently-visited group indices (front = newest). Drives the jump popover
+// and the "recent" highlight on the minimap. Cleared whenever the board changes.
+let recentIslands = [];
+const RECENT_MAX = 8;
 let mmRects = []; // island rect elements, parallel to `islands`
 let vpRect = null; // viewport indicator element
 let lastMap = null; // { b, scale, offX, offY } for click-to-world
@@ -94,6 +99,7 @@ async function computeIslands() {
   list.sort((a, b) => a.y - b.y || a.x - b.x);
   islands = list;
   currentIndex = currentIndex < list.length ? currentIndex : -1;
+  recentIslands = [];
 }
 
 /** Two grid rects are neighbours when within ISLAND_GAP cells on both axes. */
@@ -125,7 +131,33 @@ function frameIsland(i) {
   if (!isl) return;
   currentIndex = i;
   frameWorldRect(isl.x, isl.y, isl.w, isl.h);
+  pushRecent(i);
   renderNav();
+}
+
+/** Frame the union bbox of every group (a poor-man's zoom-to-fit, since the
+ *  board has no scale step — it centers all content in the viewport). */
+function frameAll() {
+  if (!islands.length) return;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const i of islands) {
+    minX = Math.min(minX, i.x);
+    minY = Math.min(minY, i.y);
+    maxX = Math.max(maxX, i.x + i.w);
+    maxY = Math.max(maxY, i.y + i.h);
+  }
+  const cx = minX + (maxX - minX) / 2;
+  const cy = minY + (maxY - minY) / 2;
+  grid.setPan(state.viewportW / 2 - cx, state.viewportH / 2 - cy, true);
+}
+
+/** Record a visited group so the jump popover can offer it again. */
+function pushRecent(idx) {
+  if (idx < 0) return;
+  recentIslands = recentIslands.filter((i) => i !== idx);
+  recentIslands.unshift(idx);
+  if (recentIslands.length > RECENT_MAX) recentIslands.length = RECENT_MAX;
+  renderJump();
 }
 
 function step(dir) {
@@ -245,6 +277,7 @@ function updateMinimap() {
     el.style.width = `${Math.max(2, i.w * scale)}px`;
     el.style.height = `${Math.max(2, i.h * scale)}px`;
     el.classList.toggle("current", idx === currentIndex);
+    el.classList.toggle("recent", recentIslands[0] === idx);
   });
 
   const v = visibleWorldRect();
@@ -301,9 +334,19 @@ function buildUI() {
     <div class="nav-head">
       <span class="nav-title">Groups <span class="minimap-total"></span></span>
       <span class="nav-controls">
+        <button type="button" class="nav-jump" aria-label="Jump to a recent group" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M4 5h16v3H4zm0 5.5h10v3H4zm0 5.5h7v3H4zM18.5 13l4 4-4 4v-3h-4v-2h4z" />
+          </svg>
+        </button>
         <button type="button" class="nav-prev" aria-label="Previous group">&lsaquo;</button>
         <span class="nav-count" aria-live="polite">&ndash; / &ndash;</span>
         <button type="button" class="nav-next" aria-label="Next group">&rsaquo;</button>
+        <button type="button" class="nav-fit" aria-label="Zoom to fit all groups">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M4 4h6V2H2v8h2zm16 0v6h2V2h-8v2zM4 20v-6H2v8h8v-2zm16 0h-6v2h8v-8h-2z" />
+          </svg>
+        </button>
         <button type="button" class="nav-toggle" aria-label="Toggle minimap" aria-expanded="false">
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
             <path fill="currentColor" d="M7 10l5 5 5-5z" />
@@ -313,16 +356,28 @@ function buildUI() {
     </div>
     <div class="minimap-canvas"></div>`;
   document.body.appendChild(navPanel);
+
+  jumpPop = document.createElement("div");
+  jumpPop.className = "nav-jump-pop";
+  jumpPop.hidden = true;
+  navPanel.appendChild(jumpPop);
+
   prevBtn = navPanel.querySelector(".nav-prev");
   nextBtn = navPanel.querySelector(".nav-next");
   countEl = navPanel.querySelector(".nav-count");
   mmTotal = navPanel.querySelector(".minimap-total");
   chevronBtn = navPanel.querySelector(".nav-toggle");
+  jumpBtn = navPanel.querySelector(".nav-jump");
+  fitBtn = navPanel.querySelector(".nav-fit");
   mmCanvas = navPanel.querySelector(".minimap-canvas");
   prevBtn.addEventListener("click", () => step(-1));
   nextBtn.addEventListener("click", () => step(1));
   chevronBtn.addEventListener("click", toggleMinimap);
+  fitBtn.addEventListener("click", frameAll);
+  jumpBtn.addEventListener("click", toggleJump);
   mmCanvas.addEventListener("click", onMinimapClick);
+  document.addEventListener("pointerdown", onDocPointerDown, true);
+  renderJump();
   updateOpen();
 
   pillEl = document.createElement("button");
@@ -344,6 +399,59 @@ function renderNav() {
       : "– / –";
   if (mmTotal)
     mmTotal.textContent = islands.length ? `(${islands.length})` : "";
+}
+
+/** Build the jump popover: most-recently-visited groups, newest first. */
+function renderJump() {
+  if (!jumpPop) return;
+  jumpPop.innerHTML = "";
+  if (!recentIslands.length) {
+    const empty = document.createElement("div");
+    empty.className = "nav-jump-empty";
+    empty.textContent = "Visit a group to pin it here";
+    jumpPop.appendChild(empty);
+    jumpBtn.disabled = true;
+    return;
+  }
+  jumpBtn.disabled = false;
+  recentIslands.forEach((idx) => {
+    const isl = islands[idx];
+    if (!isl) return;
+    const col = Math.round(isl.x / CELL);
+    const row = Math.round(isl.y / CELL);
+    const item = document.createElement("button");
+    item.type = "button";
+    item.className = "nav-jump-item";
+    item.innerHTML = `<span class="nav-jump-num">${idx + 1}</span>` +
+      `<span class="nav-jump-pos">col ${col}, row ${row}</span>`;
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+      frameIsland(idx);
+      closeJump();
+    });
+    jumpPop.appendChild(item);
+  });
+}
+
+function toggleJump() {
+  if (jumpBtn.disabled) return;
+  const open = jumpPop.hidden;
+  jumpPop.hidden = !open;
+  jumpBtn.setAttribute("aria-expanded", String(open));
+  if (open) renderJump();
+}
+
+function closeJump() {
+  if (!jumpPop) return;
+  jumpPop.hidden = true;
+  jumpBtn.setAttribute("aria-expanded", "false");
+}
+
+/** Close the jump popover when interacting anywhere else on the page. */
+function onDocPointerDown(e) {
+  if (!jumpPop || jumpPop.hidden) return;
+  if (e.target.closest(".nav-jump-pop") || e.target.closest(".nav-jump")) return;
+  closeJump();
 }
 
 /** Manually pin / unpin the minimap via the chevron toggle. */
