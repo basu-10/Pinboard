@@ -1,4 +1,4 @@
-import { initDB, queryAll, getBlob, putBoard, getBoard, restoreBoard } from "./db.js";
+import { initDB, queryAll, getBlob, putBoard, getBoard, restoreBoard, clearWall } from "./db.js";
 import * as state from "./state.js";
 import * as grid from "./grid.js";
 import * as cards from "./cards.js";
@@ -127,6 +127,17 @@ async function saveCurrentBoard() {
   toast(`Saved “${title}” to library`);
 }
 
+/** If the URL carries ?new, start a fresh empty board by discarding the
+ *  previous live wall's pins. The flag is stripped so a later reload of the
+ *  page doesn't wipe the new board a second time. */
+async function maybeNewBoard() {
+  const params = new URLSearchParams(location.search);
+  if (!params.has("new")) return;
+  await clearWall();
+  boardTitle.value = "";
+  history.replaceState(null, "", location.pathname);
+}
+
 /** If the URL carries ?board=<id>, load that saved board into the current board. */
 async function maybeRestoreFromUrl() {
   const id = new URLSearchParams(location.search).get("board");
@@ -153,6 +164,7 @@ async function main() {
   quota.installGlobalGuard();
 
   await initDB();
+  await maybeNewBoard();
   await maybeRestoreFromUrl();
 
   const onChange = (id) => {
