@@ -54,7 +54,7 @@ function build() {
 }
 
 export function openNew(row, col) {
-  current = { id: uuid(), row, col, isNew: true };
+  current = { id: uuid(), row, col, rowSpan: 1, colSpan: 1, isNew: true };
   ta.value = "";
   info.textContent = `Preview shows the first ${PREVIEW_MAX} characters on the wall.`;
   show();
@@ -65,7 +65,14 @@ export async function open(id) {
   const meta = await getMeta(id);
   if (!meta) return;
   const blob = await getBlob(id);
-  current = { id, row: meta.row, col: meta.col, isNew: false };
+  current = {
+    id,
+    row: meta.row,
+    col: meta.col,
+    rowSpan: meta.rowSpan || 1,
+    colSpan: meta.colSpan || 1,
+    isNew: false,
+  };
   ta.value = blob ? blob.text : "";
   updateInfo(meta.charCount || 0);
   show();
@@ -89,6 +96,8 @@ async function save() {
     id: current.id,
     row: current.row,
     col: current.col,
+    rowSpan: current.rowSpan || 1,
+    colSpan: current.colSpan || 1,
     type: "text",
     title: firstLine(text),
     preview: text.slice(0, PREVIEW_MAX),

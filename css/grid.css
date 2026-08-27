@@ -65,6 +65,50 @@
   text-overflow: ellipsis;
 }
 
+/* --- resize handles (revealed on right-click) --- */
+.card .rh { display: none; }
+
+.card.card-resize .rh {
+  display: block;
+  position: absolute;
+  background: var(--accent);
+  box-shadow: var(--shadow-raised);
+  opacity: 0.85;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  z-index: 5;
+}
+
+.card.card-resize:hover .rh { opacity: 1; }
+
+.rh-r {
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 42%;
+  border-radius: 5px;
+  cursor: ew-resize;
+}
+
+.rh-b {
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 8px;
+  width: 42%;
+  border-radius: 5px;
+  cursor: ns-resize;
+}
+
+.rh-c {
+  right: 2px;
+  bottom: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  cursor: nwse-resize;
+}
+
 /* --- empty-cell create affordance --- */
 .cell-add {
   position: absolute;

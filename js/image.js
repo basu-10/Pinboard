@@ -58,7 +58,7 @@ function build() {
 }
 
 export function openNew(row, col) {
-  current = { id: uuid(), row, col, isNew: true };
+  current = { id: uuid(), row, col, rowSpan: 1, colSpan: 1, isNew: true };
   fileInput.value = "";
   fileInput.click();
 }
@@ -68,7 +68,14 @@ export async function open(id) {
   if (!meta) return;
   const blob = await getBlob(id);
   if (!blob || !blob.imageBlob) return;
-  current = { id, row: meta.row, col: meta.col, isNew: false };
+  current = {
+    id,
+    row: meta.row,
+    col: meta.col,
+    rowSpan: meta.rowSpan || 1,
+    colSpan: meta.colSpan || 1,
+    isNew: false,
+  };
 
   if (lastUrl) URL.revokeObjectURL(lastUrl);
   lastUrl = URL.createObjectURL(blob.imageBlob);
@@ -90,6 +97,8 @@ async function onFile(e) {
       id,
       row,
       col,
+      rowSpan: current.rowSpan || 1,
+      colSpan: current.colSpan || 1,
       type: "image",
       title: file.name || "image",
       preview: "",

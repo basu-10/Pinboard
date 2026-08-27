@@ -22,6 +22,7 @@ async function main() {
     openImage: (row, col) => image.openNew(row, col),
     openCard: (id, type) =>
       type === "text" ? editor.open(id) : image.open(id),
+    onResize: () => cards.renderCurrent(),
   });
 
   grid.init(viewport, world, {

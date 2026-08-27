@@ -56,6 +56,31 @@ export async function getBlob(id) {
   });
 }
 
+/**
+ * Update only the grid geometry (colSpan/rowSpan) of an existing card.
+ * Used by the interactive resize handles; keeps all other fields intact.
+ */
+export async function updateCardSpan(id, colSpan, rowSpan) {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(META_STORE, "readwrite");
+    const store = t.objectStore(META_STORE);
+    const get = store.get(id);
+    get.onsuccess = () => {
+      const m = get.result;
+      if (!m) {
+        resolve();
+        return;
+      }
+      m.colSpan = colSpan;
+      m.rowSpan = rowSpan;
+      store.put(m);
+    };
+    t.oncomplete = () => resolve();
+    t.onerror = () => reject(t.error);
+  });
+}
+
 export async function deleteCard(id) {
   const db = await initDB();
   return new Promise((resolve, reject) => {
