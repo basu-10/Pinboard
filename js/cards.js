@@ -1,6 +1,7 @@
 import { CELL, state } from "./state.js";
 import {
   queryWindow,
+  queryAll,
   PREVIEW_MAX,
   updateCardSpan,
   updateCardPosition,
@@ -16,6 +17,17 @@ let cellAddEl = null;
 let cardsLayer = null;
 let viewportEl = null;
 let handlers = null;
+let emptyHintEl = null;
+
+// rAF-coalesced hover so rapid pointermove events (e.g. crossing cell
+// borders) don't re-trigger show/hide churn and flicker.
+let rafPending = false;
+let pendingEvent = null;
+
+// Debounce before fading the toolbar out, so a momentary leave (grazing a
+// card, clipping a border) doesn't flash it away and back.
+const HIDE_DEBOUNCE = 70;
+let hideTimer = null;
 
 const rendered = new Map(); // id -> element
 let occupied = new Set(); // "row,col" — every cell covered by any card
@@ -52,24 +64,38 @@ export function init(world, cellAdd, h) {
   cellAddEl = cellAdd;
   handlers = h;
   viewportEl = world.parentElement;
+  emptyHintEl = document.getElementById("emptyHint");
 
   cardsLayer = document.createElement("div");
   cardsLayer.className = "cards-layer";
   worldEl.appendChild(cardsLayer);
 
   cellAddEl.addEventListener("click", (e) => {
+    if (!hoverCell) return;
     const btn = e.target.closest("button");
-    if (!btn || !hoverCell) return;
+    // A plain click on the highlighted cell (not a specific button) falls
+    // back to + Note, matching the onboarding hint. Explicit buttons choose
+    // their own type.
+    const type = btn ? btn.dataset.type : "note";
+    if (!type) return;
     const { row, col } = hoverCell;
     hideAdd();
-    if (btn.dataset.type === "note") handlers.openNote(row, col);
-    else if (btn.dataset.type === "image") handlers.openImage(row, col);
-    else if (btn.dataset.type === "paste") {
+    if (type === "note") handlers.openNote(row, col);
+    else if (type === "image") handlers.openImage(row, col);
+    else if (type === "paste") {
       suppressAdd = true;
       Promise.resolve(handlers.paste(row, col)).finally(() => {
         suppressAdd = false;
       });
     }
+  });
+
+  // Finish the fade-out, then drop the element out of layout.
+  cellAddEl.addEventListener("animationend", (e) => {
+    if (e.animationName !== "cell-add-out") return;
+    cellAddEl.hidden = true;
+    cellAddEl.classList.remove("cell-add--out", "cell-add--in");
+    hoverCell = null;
   });
 
   viewportEl.addEventListener("pointermove", onHover);
@@ -121,6 +147,21 @@ export async function render(w) {
     }
     updateCard(el, m);
   }
+
+  updateEmptyHint(metas);
+}
+
+/** Faint centered onboarding hint, shown only on a truly empty wall. */
+async function updateEmptyHint(metas) {
+  if (!emptyHintEl) return;
+  if (metas.length > 0) {
+    emptyHintEl.hidden = true;
+    return;
+  }
+  // The visible window is empty — but a card may exist off-screen, so
+  // confirm the whole wall is empty before surfacing the hint.
+  const all = await queryAll();
+  emptyHintEl.hidden = all.length === 0 ? false : true;
 }
 
 function createCard(m) {
@@ -278,12 +319,24 @@ function scheduleReflow(el) {
 
 function onHover(e) {
   if (suppressAdd) return;
+  pendingEvent = e;
+  if (!rafPending) {
+    rafPending = true;
+    requestAnimationFrame(processHover);
+  }
+}
+
+function processHover() {
+  rafPending = false;
+  const e = pendingEvent;
+  if (!e) return;
+
   if (viewportEl.classList.contains("grabbing")) {
-    hideAdd();
+    scheduleHide();
     return;
   }
   if (e.target.closest(".card")) {
-    hideAdd();
+    scheduleHide();
     return;
   }
 
@@ -296,22 +349,60 @@ function onHover(e) {
   const row = Math.floor(wy / CELL);
 
   if (occupied.has(`${row},${col}`)) {
-    hideAdd();
+    scheduleHide();
     return;
   }
 
+  // Same cell as before: just keep it shown (no re-animation / reposition churn).
+  cancelHide();
   hoverCell = { row, col };
+  positionToolbar(row, col);
+  showAdd();
+}
+
+function positionToolbar(row, col) {
   const inset = 4; // small breathing room so the highlight reads as the cell
   cellAddEl.style.left = `${state.panX + col * CELL + inset}px`;
   cellAddEl.style.top = `${state.panY + row * CELL + inset}px`;
   cellAddEl.style.width = `${CELL - inset * 2}px`;
   cellAddEl.style.height = `${CELL - inset * 2}px`;
-  cellAddEl.hidden = false;
+}
+
+/** Show immediately (plays the in-animation only on a true re-display). */
+function showAdd() {
+  if (cellAddEl.hidden) {
+    cellAddEl.hidden = false;
+    cellAddEl.classList.remove("cell-add--out");
+    cellAddEl.classList.add("cell-add--in");
+  }
+}
+
+/** Debounced fade-out: a quick re-entry cancels it before it starts. */
+function scheduleHide() {
+  if (cellAddEl.hidden || hideTimer) return;
+  hideTimer = setTimeout(() => {
+    hideTimer = null;
+    fadeOut();
+  }, HIDE_DEBOUNCE);
+}
+
+function cancelHide() {
+  if (hideTimer) {
+    clearTimeout(hideTimer);
+    hideTimer = null;
+  }
+  cellAddEl.classList.remove("cell-add--out");
+}
+
+function fadeOut() {
+  if (cellAddEl.hidden) return;
+  cellAddEl.classList.remove("cell-add--in");
+  cellAddEl.classList.add("cell-add--out");
 }
 
 export function hideAdd() {
-  cellAddEl.hidden = true;
-  hoverCell = null;
+  if (cellAddEl.hidden) return;
+  fadeOut();
 }
 
 /** Max colSpan (>=1) for `card` given its row span, without overlapping another card. */

@@ -26,6 +26,14 @@ as placing content into that specific cell. The choices are:
 - **+ Note** — opens a text editor modal where you type a note. Saving stores
   it and returns to the wall, where the note appears as a text card showing its
   title (first line) and a clamped preview of its body.
+- **Plain click on the highlighted cell** — clicking the cell itself (anywhere
+  other than a specific button) falls back to **+ Note**, so a single click adds
+  a note without aiming for a button. The explicit **+ Note**, **+ Image**, and
+  **Paste** buttons choose their own type.
+
+On a brand-new, empty wall the dotted grid loads with no cards and a faint,
+centered hint — "Hover a cell to add a note, image, or paste" — orienting first
+time users. The hint disappears as soon as any card exists anywhere on the wall.
 - **+ Image** — opens a file picker restricted to image types. The selected
   image is resized to a maximum of 1920×1080, stored as a full-resolution WebP
   blob, and displayed as a card with a thumbnail and a download link. Clicking

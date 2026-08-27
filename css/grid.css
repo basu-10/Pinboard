@@ -164,14 +164,27 @@
   background: linear-gradient(145deg, var(--accent-faint), var(--accent-soft));
   box-shadow: var(--shadow-inset),
     inset 0 0 0 2px color-mix(in srgb, var(--accent) 38%, transparent);
-  animation: cell-add-in 0.16s ease;
 }
 
 .cell-add[hidden] { display: none; }
 
+/* In-animation plays only when the --in class is (re)added on re-display. */
+.cell-add--in { animation: cell-add-in 0.16s ease; }
+
 @keyframes cell-add-in {
   from { opacity: 0; transform: scale(0.94); }
   to   { opacity: 1; transform: scale(1); }
+}
+
+/* Reverse of the above: fade + shrink out, then drop from layout. */
+.cell-add--out {
+  animation: cell-add-out 0.16s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes cell-add-out {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.94); }
 }
 
 /* subtle "this is where it lands" caption */
@@ -204,3 +217,27 @@
 }
 
 .cell-add button:active { box-shadow: var(--shadow-inset); }
+
+/* --- empty-state onboarding hint (centered, faint, non-interactive) --- */
+.empty-hint {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.empty-hint p {
+  margin: 0;
+  padding: 0 24px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ink-soft);
+  opacity: 0.55;
+}
+
+.empty-hint[hidden] { display: none; }

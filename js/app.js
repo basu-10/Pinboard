@@ -151,7 +151,7 @@ async function main() {
     nav.recompute();
   };
 
-  history.init({ onChange });
+  history.initHistory({ onChange });
   history.setHistoryButtons(undoBtn, redoBtn);
 
   editor.init({ onChange });
