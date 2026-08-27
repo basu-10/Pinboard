@@ -3,26 +3,36 @@
 ## Overview
 
 Pinboard is a static, single-page application with no build step and no
-server. The entry point is `index.html`, which loads ES-module JavaScript
-from `js/` and stylesheets from `css/`. All state lives in the browser:
-IndexedDB for persistence, an in-memory render cache for the visible viewport,
-and a few module-level variables for transient interaction state (camera
-position, hover, drag sessions, and a shared ghost element).
+server. The site has three HTML surfaces, all loading ES-module JavaScript
+from `js/` and stylesheets from `css/`, and all sharing one browser IndexedDB
+database:
+
+- `index.html` — the landing page: two entry points into the wall and the library.
+- `app.html` — the pannable wall (the original single-page app).
+- `library.html` — lists saved boards and lets you open or delete them.
+
+All state lives in the browser: IndexedDB for persistence, an in-memory render
+cache for the visible viewport, and a few module-level variables for transient
+interaction state (camera position, hover, drag sessions, and a shared ghost
+element).
 
 ## Directory layout
 
 ```
-index.html          entry point; hosts the world canvas and cell toolbar
-css/                stylesheets (base, grid, modal, nav)
+index.html          landing page; entry points to the wall and library
+app.html            the pannable wall canvas and cell toolbar
+library.html        saved-boards listing (open / delete)
+css/                stylesheets (base, grid, modal, nav, site)
 js/
-  app.js            application bootstrap: wires modules and handlers
+  app.js            wall bootstrap: wires modules, save-to-library, ?board restore
+  library.js        library page: load boards, render cards, delete
   state.js          shared state (camera pan, viewport geometry, constants)
   grid.js           pannable viewport: pointer drag, wheel zoom, camera
   cards.js          card rendering, hover toolbar, resize, occupancy grid
   drag.js           DragSession class for move-to-drag lifecycle
   editor.js         text-note modal editor (open, save, delete)
   image.js          image viewer modal + image resize/thumbnail encoding
-  db.js             IndexedDB layer (meta + blob stores, window queries)
+  db.js             IndexedDB layer (meta + blob + boards stores, window queries)
   nav.js            minimap, island clustering, navigation controls
 ```
 
@@ -30,13 +40,19 @@ js/
 
 ### app.js
 
-Bootstraps the application. Initializes the database, creates the editor,
+Bootstraps the wall application. Initializes the database, creates the editor,
 image viewer, card layer, and grid, and passes callback handlers that wire
 them together. It also registers a global keyboard handler for arrow-key
 panning. The `pasteAt` function lives here: it reads the system clipboard,
 inspects available MIME types, and dispatches to either `image.pasteFile`
 (for image data) or `editor.createFromText` (for text data). Clipboard
 errors are logged to the browser console, never silently swallowed.
+
+In addition, `app.js` owns the "save to library" flow: the title field and
+save icon in the top bar snapshot the whole wall (`queryAll` + each card's
+blob) into a titled board via `putBoard`, and show a transient toast. On
+startup it checks the URL for `?board=<id>` and, if present, restores that
+board onto the wall with a confirmation when the wall is non-empty.
 
 ### state.js
 
@@ -104,16 +120,26 @@ are capped at 1920×1080 and encoded as WebP with a JPEG/PNG fallback.
 
 ### db.js
 
-Thin IndexedDB wrapper. Two object stores: `meta` (card metadata, indexed by
-row+col for windowed queries) and `blobs` (text content and image data, keyed
-by card id). `queryWindow` uses the compound `by_rc` index to fetch only
-visible cards. `putCard` writes meta + blob in a single transaction.
+Thin IndexedDB wrapper. Three object stores: `meta` (card metadata, indexed by
+row+col for windowed queries), `blobs` (text content and image data, keyed by
+card id), and `boards` (saved board snapshots, keyed by board id). `queryWindow`
+uses the compound `by_rc` index to fetch only visible cards; `putCard` writes
+meta + blob in a single transaction. Board helpers cover `putBoard`,
+`getBoard`, `getAllBoards`, `deleteBoard`, `clearWall`, and `restoreBoard`,
+which replaces the live wall with a board's stored cards.
 
 ### nav.js
 
 Provides a minimap overview of all cards (island clustering for density) and
 navigation controls. Subscribes to camera changes from grid.js to keep the
 minimap position in sync.
+
+### library.js
+
+Renders the Library page. On load it calls `getAllBoards` and builds a card for
+each board showing a cover preview, title, card counts, and saved date, with
+Open (links to `app.html?board=<id>`) and Delete actions. Deleting calls
+`deleteBoard` and removes the card from the DOM.
 
 ## Data flow
 

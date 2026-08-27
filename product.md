@@ -68,6 +68,28 @@ Dragging on empty space (not on a card or the cell toolbar) pans the
 viewport. Keyboard arrow keys pan by one cell, or by a larger step while
 shifting. The grid is dotted and scrolls infinitely in all directions.
 
+## Saving to the library
+
+While working in the wall, you can give it a title (the "Board title" field in
+the top bar) and press the save icon to snapshot the entire wall into a
+**board**. A board captures every card — notes, images, positions, and sizes —
+along with a title, so the moment is preserved exactly as laid out. Saved
+boards are listed in the **Library** (open it from the top bar or the landing
+page), where each one shows a cover preview, its card counts, and the last
+time it was saved.
+
+From the Library you can **Open** a board — this loads it back onto the wall,
+replacing the current cards — or **Delete** it. Opening a board is a one-way
+swap of the working wall, so the app confirms before overwriting anything
+already on the canvas.
+
+## Landing and navigation
+
+The app opens on a landing page with two entry points: **Open Wall** drops you
+straight into the pannable canvas, and **My Library** shows every saved board.
+The wall and the library share the same browser storage, so boards saved on one
+device in a given browser are visible in the library on that same browser.
+
 ## Data model
 
 Each card has a type (text or image) and a grid position (row, column) plus
@@ -76,3 +98,9 @@ their full body in a blob; image cards store a full-resolution image blob
 alongside a small thumbnail data URL used in the grid view. Metadata —
 position, span, title, character count for text cards, thumbnail for image
 cards — is stored separately in a metadata record keyed by card id.
+
+A **board** is a separate record that bundles a title, a saved timestamp, a
+cover image, card counts, and a full copy of every card (its metadata plus
+its blob) at the moment of saving. Boards are independent of the live wall:
+saving never alters the wall, and opening a board replaces the wall's contents
+with the stored copy.

@@ -1,9 +1,10 @@
 export const PREVIEW_MAX = 280;
 
 const DB_NAME = "text-wall";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const META_STORE = "meta";
 const BLOB_STORE = "blobs";
+const BOARD_STORE = "boards";
 
 let dbPromise = null;
 
@@ -19,6 +20,9 @@ export function initDB() {
       }
       if (!db.objectStoreNames.contains(BLOB_STORE)) {
         db.createObjectStore(BLOB_STORE, { keyPath: "id" });
+      }
+      if (!db.objectStoreNames.contains(BOARD_STORE)) {
+        db.createObjectStore(BOARD_STORE, { keyPath: "id" });
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -165,4 +169,94 @@ export async function queryWindow(rowMin, rowMax, colMin, colMax) {
     };
     cur.onerror = () => reject(cur.error);
   });
+}
+
+// ---------------------------------------------------------------------------
+// Boards: saved, titled snapshots of the whole wall (all cards + their blobs).
+// ---------------------------------------------------------------------------
+
+/** Persist a single board record (with its embedded cards array). */
+export async function putBoard(board) {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(BOARD_STORE, "readwrite");
+    t.objectStore(BOARD_STORE).put(board);
+    t.oncomplete = () => resolve();
+    t.onerror = () => reject(t.error);
+  });
+}
+
+export async function getBoard(id) {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const r = db.transaction(BOARD_STORE).objectStore(BOARD_STORE).get(id);
+    r.onsuccess = () => resolve(r.result || null);
+    r.onerror = () => reject(r.error);
+  });
+}
+
+/** Return every saved board, newest first. */
+export async function getAllBoards() {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const out = [];
+    const t = db.transaction(BOARD_STORE);
+    const cur = t.objectStore(BOARD_STORE).openCursor();
+    cur.onsuccess = () => {
+      const c = cur.result;
+      if (!c) {
+        out.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+        resolve(out);
+        return;
+      }
+      out.push(c.value);
+      c.continue();
+    };
+    cur.onerror = () => reject(cur.error);
+  });
+}
+
+export async function deleteBoard(id) {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(BOARD_STORE, "readwrite");
+    t.objectStore(BOARD_STORE).delete(id);
+    t.oncomplete = () => resolve();
+    t.onerror = () => reject(t.error);
+  });
+}
+
+/**
+ * Remove every card (metadata + blob) from the live wall, leaving it empty.
+ * Used before restoring a board so the working wall holds exactly that board.
+ */
+export async function clearWall() {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction([META_STORE, BLOB_STORE], "readwrite");
+    t.objectStore(META_STORE).clear();
+    t.objectStore(BLOB_STORE).clear();
+    t.oncomplete = () => resolve();
+    t.onerror = () => reject(t.error);
+  });
+}
+
+/**
+ * Replace the entire live wall with the cards stored in `board`. The board's
+ * cards are written back to the meta + blob stores keyed by their original ids.
+ */
+export async function restoreBoard(board) {
+  if (!board || !Array.isArray(board.cards)) return;
+  await clearWall();
+  const db = await initDB();
+  for (const card of board.cards) {
+    // Each board card is authored by the same DB; reuse its raw put path.
+    await new Promise((resolve, reject) => {
+      const t = db.transaction([META_STORE, BLOB_STORE], "readwrite");
+      t.objectStore(META_STORE).put(card.meta);
+      if (card.blob) t.objectStore(BLOB_STORE).put(card.blob);
+      t.oncomplete = () => resolve();
+      t.onerror = () => reject(t.error);
+    });
+  }
 }

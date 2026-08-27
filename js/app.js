@@ -1,4 +1,4 @@
-import { initDB } from "./db.js";
+import { initDB, queryAll, getBlob, putBoard, getBoard, restoreBoard } from "./db.js";
 import * as state from "./state.js";
 import * as grid from "./grid.js";
 import * as cards from "./cards.js";
@@ -62,9 +62,82 @@ async function pasteAt(row, col) {
 const viewport = document.getElementById("viewport");
 const world = document.getElementById("world");
 const cellAdd = document.getElementById("cellAdd");
+const boardTitle = document.getElementById("boardTitle");
+const saveBoardBtn = document.getElementById("saveBoard");
+
+function toast(msg) {
+  let el = document.querySelector(".toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.className = "toast";
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.hidden = false;
+  el.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => {
+    el.classList.remove("show");
+    setTimeout(() => (el.hidden = true), 250);
+  }, 2200);
+}
+
+/** Snapshot the entire live wall into a titled board and store it. */
+async function saveCurrentBoard() {
+  const all = await queryAll();
+  const cardsData = [];
+  let cover = null;
+  let textCount = 0;
+  let imageCount = 0;
+  for (const meta of all) {
+    if (meta.type === "image") {
+      imageCount++;
+      if (!cover && meta.thumb) cover = meta.thumb;
+    } else {
+      textCount++;
+    }
+    const blob = await getBlob(meta.id);
+    cardsData.push({ meta, blob: blob || null });
+  }
+
+  const title = (boardTitle.value || "").trim() || "Untitled board";
+  const now = Date.now();
+  const board = {
+    id: crypto.randomUUID(),
+    title,
+    createdAt: now,
+    updatedAt: now,
+    cover,
+    counts: { text: textCount, image: imageCount },
+    cards: cardsData,
+  };
+  await putBoard(board);
+  toast(`Saved “${title}” to library`);
+}
+
+/** If the URL carries ?board=<id>, load that saved board into the wall. */
+async function maybeRestoreFromUrl() {
+  const id = new URLSearchParams(location.search).get("board");
+  if (!id) return;
+  const board = await getBoard(id);
+  if (!board) {
+    toast("That board could not be found");
+    return;
+  }
+  const ok =
+    (await queryAll()).length === 0 ||
+    confirm(
+      "Open this board? It will replace the cards currently on your wall."
+    );
+  if (!ok) return;
+  await restoreBoard(board);
+  if (board.title) boardTitle.value = board.title;
+  toast(`Opened “${board.title}”`);
+}
 
 async function main() {
   await initDB();
+  await maybeRestoreFromUrl();
 
   const onChange = () => {
     cards.renderCurrent();
@@ -89,6 +162,16 @@ async function main() {
   });
 
   await nav.init();
+
+  saveBoardBtn.addEventListener("click", () => {
+    saveBoardBtn.disabled = true;
+    saveCurrentBoard()
+      .catch((err) => {
+        console.error("Failed to save board:", err);
+        toast("Could not save board");
+      })
+      .finally(() => (saveBoardBtn.disabled = false));
+  });
 
   window.addEventListener("keydown", (e) => {
     const step = state.CELL;
