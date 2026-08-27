@@ -86,6 +86,30 @@ export async function updateCardSpan(id, colSpan, rowSpan) {
 }
 
 /**
+ * Update only the accent color of an existing pin.
+ * Used by the editor / image viewer color picker; keeps all other fields intact.
+ */
+export async function updateCardColor(id, color) {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(META_STORE, "readwrite");
+    const store = t.objectStore(META_STORE);
+    const get = store.get(id);
+    get.onsuccess = () => {
+      const m = get.result;
+      if (!m) {
+        resolve();
+        return;
+      }
+      m.color = color || null;
+      store.put(m);
+    };
+    t.oncomplete = () => resolve();
+    t.onerror = () => reject(t.error);
+  });
+}
+
+/**
  * Update only the grid position (row/col anchor) of an existing pin.
  * Used by drag-to-move; keeps all other fields (and span) intact.
  */

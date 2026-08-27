@@ -233,6 +233,14 @@ async function updateCard(el, m) {
   const rs = m.rowSpan || 1;
   el._card = { id: m.id, row: m.row, col: m.col, colSpan: cs, rowSpan: rs, type: m.type };
 
+  if (m.color) {
+    el.style.setProperty("--pin", m.color);
+    el.classList.add("card--colored");
+  } else {
+    el.classList.remove("card--colored");
+    el.style.removeProperty("--pin");
+  }
+
   el.style.left = `${m.col * CELL + 8}px`;
   el.style.top = `${m.row * CELL + 8}px`;
   el.style.width = `${cs * CELL - 16}px`;

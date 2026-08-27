@@ -34,6 +34,7 @@ js/
   drag.js           DragSession class for move-to-drag lifecycle
   editor.js         text-note modal editor (open, save, delete)
   image.js          image viewer modal + image resize/thumbnail encoding
+  colorPalette.js   preset pin colors + reusable swatch picker UI
   db.js             IndexedDB layer (meta + blob + boards stores, window queries)
   nav.js            minimap, island clustering, navigation controls
   history.js        undo/redo command stack
@@ -110,7 +111,8 @@ Manages the text-note modal. `openNew` creates a blank note at a cell;
 `open` loads an existing note for editing. `createFromText` (used by paste)
 writes a note pin directly from clipboard text without opening the modal.
 Saves write the full text blob and update metadata (title, character count,
-preview).
+preview, and the chosen accent color). The modal embeds the shared color
+picker so a note's preset color is committed on save.
 
 ### image.js
 
@@ -119,7 +121,18 @@ picker; `pasteFile` (used by paste) accepts a clipboard image blob directly
 and runs it through the same resize + thumbnail pipeline. `paintCardThumb`
 re-renders a pin's thumbnail from the full-resolution stored blob at the
 pin's current pixel dimensions, keeping images crisp across resize. Images
-are capped at 1920×1080 and encoded as WebP with a JPEG/PNG fallback.
+are capped at 1920×1080 and encoded as WebP with a JPEG/PNG fallback. The
+viewer embeds the shared color picker and persists a chosen accent color
+immediately for existing pins (recorded on the history stack like any edit).
+
+### colorPalette.js
+
+Exposes the preset palettes (three arrays of ten hex colors) and a
+`createColorPicker({ onPick })` factory that builds a self-contained swatch
+grid plus a "None" control. `onPick(hex)` fires with a hex string or `null`;
+`select(hex)` reflects the active choice in the UI. `editor.js` and `image.js`
+both mount an instance inside their modals so the two pin types share the same
+look and behavior.
 
 ### db.js
 
@@ -129,7 +142,9 @@ pin id), and `boards` (saved board snapshots, keyed by board id). `queryWindow`
 uses the compound `by_rc` index to fetch only visible pins; `putCard` writes
 meta + blob in a single transaction. Board helpers cover `putBoard`,
 `getBoard`, `getAllBoards`, `deleteBoard`, `clearWall`, and `restoreBoard`,
-which replaces the live board with a board's stored pins.
+which replaces the live board with a board's stored pins. `updateCardColor`
+writes only the accent `color` field of an existing pin, used by the color
+picker.
 
 ### nav.js
 
@@ -198,13 +213,16 @@ stack. The module owns the undo/redo button disabled state and exposes
 4. **Drag**: `onCardDown` → `new DragSession` → `onMove` updates live DOM
    position + ghost → `onCommit` updates occupancy + `db.updateCardPosition`
    → `history.recordMoveCard` → `onMove` handler re-renders nav.
-5. **Resize**: handle drag → live DOM width/height → `onCardUp` →
-   `db.updateCardSpan` → `history.recordResizeCard` → callback re-renders.
-6. **Paste**: toolbar Paste click → `app.js.pasteAt` → `navigator.clipboard.read()`
-   → dispatch image/text → `db.putCard` → `history.recordAddCard` → `onChange`.
-7. **Undo/redo**: button click or Ctrl+Z / Ctrl+Y → `history.undo()` /
-   `history.redo()` → command performs the inverse/repeat DB operation →
-   `notify(id)` invalidates the affected pin's cache and re-renders.
+ 5. **Resize**: handle drag → live DOM width/height → `onCardUp` →
+    `db.updateCardSpan` → `history.recordResizeCard` → callback re-renders.
+ 6. **Color**: modal picker → `db.updateCardColor` (image) or saved with the
+    note meta (text) → `history.recordEditCard` (image) → `onChange` re-renders
+    the card with its tinted background and colored ring.
+ 7. **Paste**: toolbar Paste click → `app.js.pasteAt` → `navigator.clipboard.read()`
+    → dispatch image/text → `db.putCard` → `history.recordAddCard` → `onChange`.
+ 8. **Undo/redo**: button click or Ctrl+Z / Ctrl+Y → `history.undo()` /
+    `history.redo()` → command performs the inverse/repeat DB operation →
+    `notify(id)` invalidates the affected pin's cache and re-renders.
 
 ## Design decisions
 

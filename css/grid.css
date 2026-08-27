@@ -31,6 +31,20 @@
 
 .card:active { transform: scale(0.992); }
 
+/* --- preset color (applied via --pin on the card) --- */
+.card--colored {
+  background: linear-gradient(145deg,
+    color-mix(in srgb, var(--pin) 30%, var(--base-2)),
+    color-mix(in srgb, var(--pin) 22%, var(--base)));
+  box-shadow: var(--shadow-raised), inset 0 0 0 3px color-mix(in srgb, var(--pin) 65%, transparent);
+}
+.card--colored:hover {
+  box-shadow: var(--shadow-raised-lg), inset 0 0 0 3px var(--pin);
+}
+.card--colored .card-meta {
+  color: color-mix(in srgb, var(--pin) 55%, var(--ink-soft));
+}
+
 .card-body {
   flex: 1 1 auto;
   font-size: 13.5px;

@@ -63,6 +63,16 @@ pins this is a textarea with a character-count preview note; for image pins
 this is a full-size viewer with a download link and delete button. Changes are
 saved on confirmation.
 
+### Coloring pins
+
+Each pin can be given an accent color to help organize the board visually. The
+note editor and the image viewer both include a color picker offering three
+palettes of ten preset swatches (Soft, Vivid, and Earth) plus a "None" option
+to clear the color. For text notes the chosen color is saved with the note; for
+image pins it is applied immediately. A colored pin shows a tinted card
+background and a colored ring around its border, so the accent reads clearly on
+both text and image cards.
+
 ### Resizing pins
 
 Right-clicking a pin toggles resize handles on its east, south, and
@@ -147,7 +157,8 @@ an optional span (colSpan, rowSpan, both defaulting to 1). Text pins store
 their full body in a blob; image pins store a full-resolution image blob
 alongside a small thumbnail data URL used in the grid view. Metadata —
 position, span, title, character count for text pins, thumbnail for image
-pins — is stored separately in a metadata record keyed by pin id.
+pins, and an optional accent color for any pin — is stored separately in a
+metadata record keyed by pin id.
 
 A **board** is a separate record that bundles a title, a saved timestamp, a
 cover image, pin counts, and a full copy of every pin (its metadata plus

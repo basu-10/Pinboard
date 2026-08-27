@@ -1,11 +1,13 @@
 import { PREVIEW_MAX, putCard, deleteCard, getMeta, getBlob } from "./db.js";
 import * as history from "./history.js";
+import { createColorPicker } from "./colorPalette.js";
 
 let onChange = () => {};
 let overlay = null;
 let ta = null;
 let info = null;
-let current = null; // { id, row, col, isNew }
+let picker = null;
+let current = null; // { id, row, col, isNew, color }
 
 export function init(opts) {
   onChange = opts.onChange;
@@ -32,6 +34,7 @@ function build() {
         <button class="modal-close" type="button" aria-label="Close">&times;</button>
       </header>
       <p class="editor-info"></p>
+      <div class="editor-color"></div>
       <textarea class="editor-area" placeholder="Write your note…"></textarea>
       <footer class="modal-foot">
         <button class="btn-danger" type="button" data-act="delete">Delete</button>
@@ -52,12 +55,21 @@ function build() {
   overlay.addEventListener("click", (e) => {
     if (e.target === overlay) close();
   });
+
+  picker = createColorPicker({
+    onPick: (c) => {
+      if (current) current.color = c || null;
+      picker.select(c);
+    },
+  });
+  overlay.querySelector(".editor-color").appendChild(picker.root);
 }
 
 export function openNew(row, col) {
-  current = { id: uuid(), row, col, rowSpan: 1, colSpan: 1, isNew: true };
+  current = { id: uuid(), row, col, rowSpan: 1, colSpan: 1, isNew: true, color: null };
   ta.value = "";
   info.textContent = `Preview shows the first ${PREVIEW_MAX} characters on the board.`;
+  picker.select(null);
   show();
   ta.focus();
 }
@@ -77,6 +89,7 @@ export async function createFromText(text, row, col) {
     preview: text.slice(0, PREVIEW_MAX),
     charCount,
     thumb: "",
+    color: null,
     updatedAt: Date.now(),
   };
   await putCard(meta, { id, text });
@@ -95,11 +108,13 @@ export async function open(id) {
     rowSpan: meta.rowSpan || 1,
     colSpan: meta.colSpan || 1,
     isNew: false,
+    color: meta.color || null,
     oldMeta: meta,
     oldBlob: blob,
   };
   ta.value = blob ? blob.text : "";
   updateInfo(meta.charCount || 0);
+  picker.select(meta.color || null);
   show();
   ta.focus();
 }
@@ -128,6 +143,7 @@ async function save() {
     preview: text.slice(0, PREVIEW_MAX),
     charCount,
     thumb: "",
+    color: current.color || null,
     updatedAt: Date.now(),
   };
   const blob = { id, text };

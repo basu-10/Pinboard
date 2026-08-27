@@ -16,6 +16,7 @@
 .modal {
   width: min(640px, 94vw);
   max-height: 90vh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -69,6 +70,42 @@
   box-shadow: var(--shadow-inset);
 }
 .editor-area:focus { outline: 1px solid var(--accent-soft); }
+
+/* --- pin color picker (shared by note editor + image viewer) --- */
+.editor-color { display: flex; flex-direction: column; gap: 8px; }
+.color-picker { display: flex; flex-direction: column; gap: 8px; }
+.color-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+.color-clear {
+  font-size: 12px;
+  padding: 3px 10px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink-soft);
+}
+.color-clear:hover { box-shadow: inset 0 0 0 1px var(--accent-soft); }
+.color-clear.is-active {
+  color: var(--accent-strong);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.color-palettes { display: flex; flex-direction: column; gap: 6px; }
+.color-palette { display: flex; gap: 6px; flex-wrap: wrap; }
+.color-swatch {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 6px;
+  box-shadow: var(--shadow-raised);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+.color-swatch:hover { box-shadow: var(--shadow-raised-lg); }
+.color-swatch.is-selected { outline-color: var(--ink); }
 
 /* --- image viewer --- */
 .viewer-body {

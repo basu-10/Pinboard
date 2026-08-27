@@ -1,5 +1,6 @@
-import { putCard, deleteCard, getMeta, getBlob } from "./db.js";
+import { putCard, deleteCard, getMeta, getBlob, updateCardColor } from "./db.js";
 import * as history from "./history.js";
+import { createColorPicker } from "./colorPalette.js";
 
 let onChange = () => {};
 let overlay = null;
@@ -7,7 +8,8 @@ let imgEl = null;
 let titleEl = null;
 let dlLink = null;
 let fileInput = null;
-let current = null; // { id, row, col, isNew }
+let picker = null;
+let current = null; // { id, row, col, isNew, color }
 let lastUrl = null;
 
 // Cache full-size image blobs so the card can re-render them at any size
@@ -88,6 +90,7 @@ function build() {
         <button class="modal-close" type="button" aria-label="Close">&times;</button>
       </header>
       <div class="viewer-body"><img class="viewer-img" alt="" /></div>
+      <div class="editor-color viewer-color"></div>
       <footer class="modal-foot">
         <button class="btn-danger" type="button" data-act="delete">Delete</button>
         <span class="spacer"></span>
@@ -114,10 +117,32 @@ function build() {
   fileInput.hidden = true;
   document.body.appendChild(fileInput);
   fileInput.addEventListener("change", onFile);
+
+  picker = createColorPicker({ onPick: onPickColor });
+  overlay.querySelector(".viewer-color").appendChild(picker.root);
+}
+
+/** Apply a preset color to the open pin (persisted immediately for existing pins). */
+async function onPickColor(hex) {
+  picker.select(hex);
+  if (!current) return;
+  current.color = hex || null;
+  if (current.isNew) return; // recorded when the new card is created
+  const id = current.id;
+  const oldMeta = current.oldMeta;
+  const newMeta = { ...oldMeta, color: hex || null };
+  try {
+    await updateCardColor(id, hex || null);
+    history.recordEditCard(oldMeta, current.oldBlob, newMeta, current.oldBlob);
+    invalidateCache(id);
+    onChange(id);
+  } catch (err) {
+    console.error("Failed to update pin color:", err);
+  }
 }
 
 export function openNew(row, col) {
-  current = { id: uuid(), row, col, rowSpan: 1, colSpan: 1, isNew: true };
+  current = { id: uuid(), row, col, rowSpan: 1, colSpan: 1, isNew: true, color: null };
   fileInput.value = "";
   fileInput.click();
 }
@@ -144,9 +169,12 @@ export async function open(id) {
     rowSpan: meta.rowSpan || 1,
     colSpan: meta.colSpan || 1,
     isNew: false,
+    color: meta.color || null,
     oldMeta: meta,
     oldBlob: blob,
   };
+
+  if (picker) picker.select(meta.color || null);
 
   if (lastUrl) URL.revokeObjectURL(lastUrl);
   lastUrl = URL.createObjectURL(blob.imageBlob);
@@ -186,6 +214,7 @@ async function createFromBlob(file, row, col) {
     preview: "",
     charCount: 0,
     thumb,
+    color: current.color || null,
     updatedAt: Date.now(),
   };
   const imageBlob = { id, imageBlob: blob };
