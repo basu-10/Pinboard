@@ -116,6 +116,16 @@ export function openNew(row, col) {
   fileInput.click();
 }
 
+/** Create an image card directly from a File/Blob (skips the file picker). */
+export async function pasteFile(file, row, col) {
+  try {
+    await createFromBlob(file, row, col);
+  } catch (err) {
+    console.error("Failed to paste image from clipboard:", err);
+    alert("Could not load that image.");
+  }
+}
+
 export async function open(id) {
   const meta = await getMeta(id);
   if (!meta) return;
@@ -143,29 +153,36 @@ export async function open(id) {
 async function onFile(e) {
   const file = e.target.files && e.target.files[0];
   if (!file || !current) return;
-  const { id, row, col } = current;
+  const { row, col } = current;
   try {
-    const { blob, thumb } = await resizeImage(file);
-    const meta = {
-      id,
-      row,
-      col,
-      rowSpan: current.rowSpan || 1,
-      colSpan: current.colSpan || 1,
-      type: "image",
-      title: file.name || "image",
-      preview: "",
-      charCount: 0,
-      thumb,
-      updatedAt: Date.now(),
-    };
-    await putCard(meta, { id, imageBlob: blob });
-    onChange(id);
-    open(id);
+    await createFromBlob(file, row, col);
   } catch (err) {
     console.error(err);
     alert("Could not load that image.");
   }
+}
+
+/** Build and store an image card from a File/Blob, then open the viewer. */
+async function createFromBlob(file, row, col) {
+  const id = uuid();
+  current = { id, row, col, rowSpan: 1, colSpan: 1, isNew: true };
+  const { blob, thumb } = await resizeImage(file);
+  const meta = {
+    id,
+    row,
+    col,
+    rowSpan: current.rowSpan || 1,
+    colSpan: current.colSpan || 1,
+    type: "image",
+    title: file.name || "image",
+    preview: "",
+    charCount: 0,
+    thumb,
+    updatedAt: Date.now(),
+  };
+  await putCard(meta, { id, imageBlob: blob });
+  onChange(id);
+  open(id);
 }
 
 function resizeImage(file) {

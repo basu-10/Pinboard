@@ -64,7 +64,8 @@ export function init(world, cellAdd, h) {
     const { row, col } = hoverCell;
     hideAdd();
     if (btn.dataset.type === "note") handlers.openNote(row, col);
-    else handlers.openImage(row, col);
+    else if (btn.dataset.type === "image") handlers.openImage(row, col);
+    else if (btn.dataset.type === "paste") handlers.paste(row, col);
   });
 
   viewportEl.addEventListener("pointermove", onHover);

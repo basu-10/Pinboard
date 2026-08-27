@@ -61,6 +61,27 @@ export function openNew(row, col) {
   ta.focus();
 }
 
+/** Create a note card directly from text (skips the editor dialog). */
+export async function createFromText(text, row, col) {
+  const id = uuid();
+  const charCount = text.length;
+  const meta = {
+    id,
+    row,
+    col,
+    rowSpan: 1,
+    colSpan: 1,
+    type: "text",
+    title: firstLine(text),
+    preview: text.slice(0, PREVIEW_MAX),
+    charCount,
+    thumb: "",
+    updatedAt: Date.now(),
+  };
+  await putCard(meta, { id, text });
+  onChange(id);
+}
+
 export async function open(id) {
   const meta = await getMeta(id);
   if (!meta) return;
