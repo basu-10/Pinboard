@@ -27,6 +27,7 @@ async function main() {
     openCard: (id, type) =>
       type === "text" ? editor.open(id) : image.open(id),
     onResize: () => cards.renderCurrent(),
+    onMove: onChange,
   });
 
   grid.init(viewport, world, {

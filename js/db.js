@@ -82,6 +82,31 @@ export async function updateCardSpan(id, colSpan, rowSpan) {
 }
 
 /**
+ * Update only the grid position (row/col anchor) of an existing card.
+ * Used by drag-to-move; keeps all other fields (and span) intact.
+ */
+export async function updateCardPosition(id, row, col) {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(META_STORE, "readwrite");
+    const store = t.objectStore(META_STORE);
+    const get = store.get(id);
+    get.onsuccess = () => {
+      const m = get.result;
+      if (!m) {
+        resolve();
+        return;
+      }
+      m.row = row;
+      m.col = col;
+      store.put(m);
+    };
+    t.oncomplete = () => resolve();
+    t.onerror = () => reject(t.error);
+  });
+}
+
+/**
  * Fetch every card's metadata (no windowing). Used by navigation to compute
  * island clusters and the minimap across the whole wall.
  */

@@ -65,6 +65,19 @@
   text-overflow: ellipsis;
 }
 
+/* --- drag-to-move (snapped to whole cells) --- */
+.card-dragging {
+  z-index: 100;
+  cursor: grabbing;
+  transition: none;
+  box-shadow: var(--shadow-raised-lg);
+}
+.card-dragging:active { transform: none; }
+
+.card-invalid {
+  box-shadow: var(--shadow-raised), inset 0 0 0 2px var(--danger);
+}
+
 /* --- resize handles (revealed on right-click) --- */
 .card .rh { display: none; }
 

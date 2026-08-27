@@ -1,5 +1,11 @@
 import { CELL, state } from "./state.js";
-import { queryWindow, PREVIEW_MAX, updateCardSpan, getBlob } from "./db.js";
+import {
+  queryWindow,
+  PREVIEW_MAX,
+  updateCardSpan,
+  updateCardPosition,
+  getBlob,
+} from "./db.js";
 import { didPan } from "./grid.js";
 import * as editor from "./editor.js";
 import * as image from "./image.js";
@@ -15,6 +21,30 @@ let occupied = new Set(); // "row,col" — every cell covered by any card
 let occupiedRects = []; // { id, r0, c0, r1, c1 } — for overlap checks
 let lastWindow = null;
 let hoverCell = null;
+let drag = null; // active card-drag session
+let justDragged = false; // swallow the click that follows a real drag
+
+const DRAG_THRESHOLD = 3; // px before a press becomes a drag
+
+/** True if a rect anchored at (row,col) with the card's span is free of others. */
+function isFree(row, col, card) {
+  const r1 = row + card.rowSpan - 1;
+  const c1 = col + card.colSpan - 1;
+  for (const o of occupiedRects) {
+    if (o.id === card.id) continue;
+    if (o.r0 <= r1 && o.r1 >= row && o.c0 <= c1 && o.c1 >= col) return false;
+  }
+  return true;
+}
+
+/** World (un-panned) coords of the pointer. */
+function pointerWorld(e) {
+  const rect = viewportEl.getBoundingClientRect();
+  return {
+    x: e.clientX - rect.left - state.panX,
+    y: e.clientY - rect.top - state.panY,
+  };
+}
 
 const MAX_SPAN = 64; // hard cap on either dimension
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -97,9 +127,16 @@ function createCard(m) {
 
   el.addEventListener("click", () => {
     if (didPan()) return; // swallow click that ended a pan
+    if (justDragged) {
+      justDragged = false;
+      return;
+    }
     if (m.type === "text") handlers.openCard(m.id, "text");
     else handlers.openCard(m.id, "image");
   });
+
+  // left-press starts a potential drag-to-move (snapped to whole cells)
+  el.addEventListener("pointerdown", onCardDown);
 
   // right-click toggles interactive resize handles for this card
   el.addEventListener("contextmenu", (e) => {
@@ -351,4 +388,101 @@ function onHandleDown(e) {
 
   el.addEventListener("pointermove", move);
   el.addEventListener("pointerup", up);
+}
+
+/** Begin a drag-to-move after a left press on a card body (not a resize handle). */
+function onCardDown(e) {
+  if (e.button !== 0) return;
+  const el = e.currentTarget;
+  const card = el._card;
+  if (!card) return;
+
+  const w = pointerWorld(e);
+  drag = {
+    card,
+    el,
+    pointerId: e.pointerId,
+    startX: e.clientX,
+    startY: e.clientY,
+    // offset from the card's snapped origin to the grab point, in world px
+    grabDX: w.x - (card.col * CELL + 8),
+    grabDY: w.y - (card.row * CELL + 8),
+    origRow: card.row,
+    origCol: card.col,
+    row: card.row,
+    col: card.col,
+    moved: false,
+  };
+
+  try {
+    el.setPointerCapture(e.pointerId);
+  } catch (_) {
+    /* ignore */
+  }
+  el.addEventListener("pointermove", onCardMove);
+  el.addEventListener("pointerup", onCardUp);
+}
+
+function onCardMove(e) {
+  if (!drag) return;
+  const { el, card } = drag;
+
+  if (!drag.moved) {
+    if (
+      Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) <=
+      DRAG_THRESHOLD
+    ) {
+      return;
+    }
+    drag.moved = true;
+    el.classList.add("card-dragging");
+  }
+
+  const w = pointerWorld(e);
+  // Snap to integer cells — no fractional positioning.
+  let col = Math.round((w.x - drag.grabDX - 8) / CELL);
+  let row = Math.round((w.y - drag.grabDY - 8) / CELL);
+  row = Math.max(0, row);
+  col = Math.max(0, col);
+
+  if (isFree(row, col, card)) {
+    drag.row = row;
+    drag.col = col;
+    el.style.left = `${col * CELL + 8}px`;
+    el.style.top = `${row * CELL + 8}px`;
+    el.classList.remove("card-invalid");
+  } else {
+    el.classList.add("card-invalid");
+  }
+}
+
+async function onCardUp() {
+  if (!drag) return;
+  const { el, card } = drag;
+  el.removeEventListener("pointermove", onCardMove);
+  el.removeEventListener("pointerup", onCardUp);
+  try {
+    el.releasePointerCapture(drag.pointerId);
+  } catch (_) {
+    /* ignore */
+  }
+  el.classList.remove("card-dragging");
+
+  if (!drag.moved) {
+    drag = null;
+    return;
+  }
+
+  const { row, col, origRow, origCol } = drag;
+  el.classList.remove("card-invalid");
+  if (row !== origRow || col !== origCol) {
+    card.row = row;
+    card.col = col;
+    el.style.left = `${col * CELL + 8}px`;
+    el.style.top = `${row * CELL + 8}px`;
+    await updateCardPosition(card.id, row, col);
+    if (handlers.onMove) handlers.onMove();
+  }
+  justDragged = true;
+  drag = null;
 }
