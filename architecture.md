@@ -57,7 +57,20 @@ In addition, `app.js` owns the "save to library" flow: the title field and
 save icon in the top bar snapshot the whole board (`queryAll` + each pin's
 blob) into a titled board via `putBoard`, and show a transient toast. On
 startup it checks the URL for `?board=<id>` and, if present, restores that
-board onto the working board, with a confirmation when the board is non-empty.
+board onto the working board, with a confirmation when the board is non-empty. It also wires the template picker
+(`createTemplatePicker` from `templates.js`) to the top-bar template icon and to
+the empty-board hint link, and shows a toast when a template is applied.
+
+### templates.js
+
+Provides pre-built board layouts (Kanban, Weekly Planner, Blank) that seed the
+canvas. Each template is a descriptor that builds an array of text-pin
+definitions; `applyTemplate` clears the wall and writes those pins directly via
+`putCard`, then clears history so the seed reads as a fresh baseline rather than
+a long undo chain. `createTemplatePicker` builds a modal listing the templates
+as selectable tiles. The picker is surfaced through a single top-bar icon plus
+an "or start from a template" link that only appears in the empty-board hint, so
+the feature stays discoverable without cluttering a populated board.
 
 ### state.js
 

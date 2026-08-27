@@ -30,6 +30,11 @@
           <path fill="currentColor" d="M5 3h11l3 3v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 2v12h7V5H5Zm9 0v3h3l-3-3Zm-7 9h7v2H7v-2Zm0-4h7v2H7v-2Z"/>
         </svg>
       </button>
+      <button type="button" id="templateBtn" class="icon-btn" aria-label="Start from a template" title="Start from a template">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M3 3h8v8H3V3Zm10 0h8v8h-8V3ZM3 13h8v8H3v-8Zm10 0h8v8h-8v-8Z"/>
+        </svg>
+      </button>
     </span>
     <span class="hint">Drag to pan &middot; drag a pin to another cell &middot; click an empty cell to add a note, image, or paste from clipboard &middot; right-click a pin to resize it</span>
     <a class="topbar-link" href="library.html">Library</a>
@@ -39,6 +44,7 @@
     <div class="world" id="world"></div>
     <div class="empty-hint" id="emptyHint" hidden>
       <p>Hover a cell to add a note, image, or paste</p>
+      <button type="button" id="emptyTemplate" class="hint-template">or start from a template</button>
     </div>
     <div class="cell-add" id="cellAdd" hidden>
       <div class="cell-add-row">

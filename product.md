@@ -88,6 +88,20 @@ buttons (disabled when there is nothing to undo/redo), and the standard
 keyboard shortcuts work: **Ctrl+Z** (undo) and **Ctrl+Y** or **Ctrl+Shift+Z**
 (redo). Accidental drags and deletes are fully reversible.
 
+### Board templates
+
+When starting a fresh board, you don't have to begin from a blank grid. A
+**Templates** icon in the top bar opens a small picker with three layouts:
+**Kanban** (To Do / In Progress / Done columns with a few seeded example
+tasks), **Weekly Planner** (seven day columns, each with a notes area), and
+**Blank** (an empty canvas). Picking one seeds the board with pre-placed text
+pins so the structure is already there to fill in. Applying a template replaces
+the current pins and asks for confirmation first if the board already has
+content. On an empty board the same picker is also offered through a subtle
+"or start from a template" link in the onboarding hint, so the option is
+discoverable exactly when you would use it without adding permanent clutter to
+a working board.
+
 ### Panning the canvas
 
 Dragging on empty space (not on a pin or the cell toolbar) pans the

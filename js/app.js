@@ -7,6 +7,7 @@ import * as image from "./image.js";
 import * as nav from "./nav.js";
 import * as history from "./history.js";
 import * as search from "./search.js";
+import { createTemplatePicker } from "./templates.js";
 
 async function pasteAt(row, col) {
   if (!navigator.clipboard || !navigator.clipboard.read) {
@@ -66,6 +67,8 @@ const world = document.getElementById("world");
 const cellAdd = document.getElementById("cellAdd");
 const boardTitle = document.getElementById("boardTitle");
 const saveBoardBtn = document.getElementById("saveBoard");
+const templateBtn = document.getElementById("templateBtn");
+const emptyTemplateBtn = document.getElementById("emptyTemplate");
 const undoBtn = document.getElementById("undoBtn");
 const redoBtn = document.getElementById("redoBtn");
 
@@ -153,6 +156,11 @@ async function main() {
     nav.recompute();
   };
 
+  const templates = createTemplatePicker({ onChange });
+  document.addEventListener("tpl:applied", (e) => {
+    toast(`Seeded board with “${e.detail.name}”`);
+  });
+
   history.initHistory({ onChange });
   history.setHistoryButtons(undoBtn, redoBtn);
 
@@ -172,6 +180,9 @@ async function main() {
   grid.init(viewport, world, {
     onWindowChange: (w) => cards.render(w),
   });
+
+  if (templateBtn) templateBtn.addEventListener("click", () => templates.open());
+  if (emptyTemplateBtn) emptyTemplateBtn.addEventListener("click", () => templates.open());
 
   await nav.init();
   search.init();
