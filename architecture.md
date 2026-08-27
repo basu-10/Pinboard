@@ -7,8 +7,8 @@ server. The site has three HTML surfaces, all loading ES-module JavaScript
 from `js/` and stylesheets from `css/`, and all sharing one browser IndexedDB
 database:
 
-- `index.html` — the landing page: two entry points into the wall and the library.
-- `app.html` — the pannable wall (the original single-page app).
+- `index.html` — the landing page: two entry points into the board and the library.
+- `app.html` — the pannable board (the original single-page app).
 - `library.html` — lists saved boards and lets you open or delete them.
 
 All state lives in the browser: IndexedDB for persistence, an in-memory render
@@ -19,18 +19,18 @@ element).
 ## Directory layout
 
 ```
-index.html          landing page; entry points to the wall and library
-app.html            the pannable wall canvas and cell toolbar
+index.html          landing page; entry points to the board and library
+app.html            the pannable board canvas and cell toolbar
 library.html        saved-boards listing (open / delete)
 css/                stylesheets (base, grid, modal, nav, site)
 js/
-  app.js            wall bootstrap: wires modules, save-to-library, ?board restore
-  library.js        library page: load boards, render cards, delete
+  app.js            board bootstrap: wires modules, save-to-library, ?board restore
+  library.js        library page: load boards, render pins, delete
   backup.js          library robustness: JSON backup/restore + zip export
   zip.js             dependency-free STORE-method ZIP writer
   state.js          shared state (camera pan, viewport geometry, constants)
   grid.js           pannable viewport: pointer drag, wheel zoom, camera
-  cards.js          card rendering, hover toolbar, resize, occupancy grid
+  cards.js          pin rendering, hover toolbar, resize, occupancy grid
   drag.js           DragSession class for move-to-drag lifecycle
   editor.js         text-note modal editor (open, save, delete)
   image.js          image viewer modal + image resize/thumbnail encoding
@@ -43,8 +43,8 @@ js/
 
 ### app.js
 
-Bootstraps the wall application. Initializes the database, creates the editor,
-image viewer, card layer, and grid, and passes callback handlers that wire
+Bootstraps the board application. Initializes the database, creates the editor,
+image viewer, pin layer, and grid, and passes callback handlers that wire
 them together. It also registers a global keyboard handler for arrow-key
 panning. The `pasteAt` function lives here: it reads the system clipboard,
 inspects available MIME types, and dispatches to either `image.pasteFile`
@@ -52,10 +52,10 @@ inspects available MIME types, and dispatches to either `image.pasteFile`
 errors are logged to the browser console, never silently swallowed.
 
 In addition, `app.js` owns the "save to library" flow: the title field and
-save icon in the top bar snapshot the whole wall (`queryAll` + each card's
+save icon in the top bar snapshot the whole board (`queryAll` + each pin's
 blob) into a titled board via `putBoard`, and show a transient toast. On
 startup it checks the URL for `?board=<id>` and, if present, restores that
-board onto the wall with a confirmation when the wall is non-empty.
+board onto the working board, with a confirmation when the board is non-empty.
 
 ### state.js
 
@@ -68,7 +68,7 @@ enabling windowed rendering.
 
 Owns the pannable viewport element. Translates pointer drags and mouse-wheel
 into camera motion, applies CSS transforms to a "world" element that holds
-the card layer, and fires an `onWindowChange` callback when the visible
+the pin layer, and fires an `onWindowChange` callback when the visible
 cell range shifts (so cards.js can re-render only what's needed). Subscribes
 via a camera callback for post-animation re-syncs (e.g. minimap).
 
@@ -77,10 +77,10 @@ via a camera callback for post-animation re-syncs (e.g. minimap).
 The rendering engine and interaction hub. Key concerns:
 
 - **Occupancy grid**: `occupied` (a Set of "row,col" strings) and
-  `occupiedRects` (bounding boxes per card) track which cells are taken,
+  `occupiedRects` (bounding boxes per pin) track which cells are taken,
   enabling snap-to-free-cell during drags and collision-free resize.
 - **Windowed render**: `render(w)` queries only the visible cell range from
-  IndexedDB, reconciles the DOM (create/update/remove cards), and caches
+  IndexedDB, reconciles the DOM (create/update/remove pins), and caches
   full text and image blobs to avoid repeated IndexedDB reads.
 - **Hover toolbar**: `onHover` positions the `cellAdd` toolbar on the
   hovered empty cell. A `suppressAdd` flag prevents the toolbar from
@@ -93,7 +93,7 @@ The rendering engine and interaction hub. Key concerns:
 ### drag.js
 
 The `DragSession` class encapsulates the full press → move → release
-lifecycle for card dragging. On construction it captures the pointer's
+lifecycle for pin dragging. On construction it captures the pointer's
 world coordinates, cell position, and start position, then attaches
 `pointermove`/`pointerup`/`pointercancel` listeners to `window`. The
 movement threshold (3 px) distinguishes a drag from a tap. All movement is
@@ -108,7 +108,7 @@ module-level drag state variable.
 
 Manages the text-note modal. `openNew` creates a blank note at a cell;
 `open` loads an existing note for editing. `createFromText` (used by paste)
-writes a note card directly from clipboard text without opening the modal.
+writes a note pin directly from clipboard text without opening the modal.
 Saves write the full text blob and update metadata (title, character count,
 preview).
 
@@ -117,23 +117,23 @@ preview).
 Manages the image viewer modal and image processing. `openNew` opens the file
 picker; `pasteFile` (used by paste) accepts a clipboard image blob directly
 and runs it through the same resize + thumbnail pipeline. `paintCardThumb`
-re-renders a card's thumbnail from the full-resolution stored blob at the
-card's current pixel dimensions, keeping images crisp across resize. Images
+re-renders a pin's thumbnail from the full-resolution stored blob at the
+pin's current pixel dimensions, keeping images crisp across resize. Images
 are capped at 1920×1080 and encoded as WebP with a JPEG/PNG fallback.
 
 ### db.js
 
-Thin IndexedDB wrapper. Three object stores: `meta` (card metadata, indexed by
+Thin IndexedDB wrapper. Three object stores: `meta` (pin metadata, indexed by
 row+col for windowed queries), `blobs` (text content and image data, keyed by
-card id), and `boards` (saved board snapshots, keyed by board id). `queryWindow`
-uses the compound `by_rc` index to fetch only visible cards; `putCard` writes
+pin id), and `boards` (saved board snapshots, keyed by board id). `queryWindow`
+uses the compound `by_rc` index to fetch only visible pins; `putCard` writes
 meta + blob in a single transaction. Board helpers cover `putBoard`,
 `getBoard`, `getAllBoards`, `deleteBoard`, `clearWall`, and `restoreBoard`,
-which replaces the live wall with a board's stored cards.
+which replaces the live board with a board's stored pins.
 
 ### nav.js
 
-Provides island clustering (group detection), a minimap overview of all cards,
+Provides island clustering (group detection), a minimap overview of all pins,
 and the navigation controls. The minimap is collapsed by default — only the
 navigation header (group title, count, and previous/next buttons) renders — and
 a chevron toggle in the header slides it open or closed. While the camera moves
@@ -142,14 +142,14 @@ spatial context and then auto-collapses after a short idle period; the chevron
 lets the user pin it open manually. Clicking a group (or empty space) in the
 minimap flies the camera to that cluster. nav.js subscribes to camera changes
 from grid.js to keep the minimap's viewport indicator in sync, and recomputes
-the island clusters whenever the wall changes.
+the island clusters whenever the board changes.
 
 ### library.js
 
-Renders the Library page. On load it calls `getAllBoards` and builds a card for
-each board showing a cover preview, title, card counts, and saved date, with
+Renders the Library page. On load it calls `getAllBoards` and builds an entry for
+each board showing a cover preview, title, pin counts, and saved date, with
 Open (links to `app.html?board=<id>`) and Delete actions. Deleting calls
-`deleteBoard` and removes the card from the DOM. Each card also exposes a
+`deleteBoard` and removes the entry from the DOM. Each entry also exposes a
 **Backup** action (JSON export) and a **Save as zip** action; the Library header
 holds an **Import backup** button that reads a JSON backup file and stores it as
 a new board via `putBoard`.
@@ -160,7 +160,7 @@ Implements the Library's robustness features. `exportBoardJSON` serializes a
 board (including image blobs, embedded as data URLs) into a self-contained JSON
 file for backup. `importBoardJSON` reads such a file, rehydrates image blobs from
 their data URLs, assigns a fresh board id, and writes it back through `putBoard`.
-`exportBoardZip` flattens every card into a plain file — notes to `.txt`, images
+`exportBoardZip` flattens every pin into a plain file — notes to `.txt`, images
 to `.png` (or kept as `.jpg`) — and packages them with `makeZip`.
 
 ### zip.js
@@ -172,16 +172,16 @@ can download. Used by `backup.js` for the zip export.
 
 ### history.js
 
-Implements an undo/redo command stack using the command pattern. Each wall
+Implements an undo/redo command stack using the command pattern. Each board
 mutation is recorded as a reversible command object with `undo()` and `redo()`
 methods that perform the corresponding IndexedDB operation and notify the app
 to re-render. Five command types cover every mutation:
 
-- **Add card** — undo deletes, redo re-adds (stores meta + blob).
-- **Delete card** — undo re-adds from captured meta + blob, redo deletes.
-- **Move card** — undo/redo call `updateCardPosition` with the from/to cells.
-- **Resize card** — undo/redo call `updateCardSpan` with the from/to spans.
-- **Edit card** — undo/redo write the old/new meta + blob via `putCard`.
+- **Add pin** — undo deletes, redo re-adds (stores meta + blob).
+- **Delete pin** — undo re-adds from captured meta + blob, redo deletes.
+- **Move pin** — undo/redo call `updateCardPosition` with the from/to cells.
+- **Resize pin** — undo/redo call `updateCardSpan` with the from/to spans.
+- **Edit pin** — undo/redo write the old/new meta + blob via `putCard`.
 
 The stack is bounded (100 entries) and pushing a new command clears the redo
 stack. The module owns the undo/redo button disabled state and exposes
@@ -204,7 +204,7 @@ stack. The module owns the undo/redo button disabled state and exposes
    → dispatch image/text → `db.putCard` → `history.recordAddCard` → `onChange`.
 7. **Undo/redo**: button click or Ctrl+Z / Ctrl+Y → `history.undo()` /
    `history.redo()` → command performs the inverse/repeat DB operation →
-   `notify(id)` invalidates the affected card's cache and re-renders.
+   `notify(id)` invalidates the affected pin's cache and re-renders.
 
 ## Design decisions
 
@@ -213,17 +213,17 @@ stack. The module owns the undo/redo button disabled state and exposes
   complexity. Vanilla ES modules keep it dependency-free and directly
   debuggable in the browser.
 - **Windowed rendering**: only visible cells are queried and rendered, so the
-  wall can grow indefinitely without performance degradation.
+  board can grow indefinitely without performance degradation.
 - **Blob caching**: full text and image blobs are cached in memory after
   first read so that pan/re-render cycles don't re-query IndexedDB.
 - **Whole-cell snapping**: all positions (drag, resize) snap to `CELL`
-  multiples, ensuring cards never overlap or land at fractional offsets.
+  multiples, ensuring pins never overlap or land at fractional offsets.
 - **Unified pointerup**: the drag's pointerup is the single resolution point —
-  it either commits a move or opens the card, eliminating the click/drag race.
+  it either commits a move or opens the pin, eliminating the click/drag race.
 - **Clipboard as first-class**: paste reuses the exact same image/text
   creation pipeline as the file picker and editor, so pasted content behaves
   identically to manually added content.
-- **Command pattern for undo/redo**: every wall mutation is wrapped in a small
+- **Command pattern for undo/redo**: every board mutation is wrapped in a small
   command object (`undo`/`redo` methods) pushed onto a bounded stack. This keeps
   the history concern isolated from the interaction code — cards.js, editor.js,
   and image.js each record a command after their DB write, without knowing how

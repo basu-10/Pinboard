@@ -85,7 +85,7 @@ function toast(msg) {
   }, 2200);
 }
 
-/** Snapshot the entire live wall into a titled board and store it. */
+/** Snapshot the current board into a titled library board and store it. */
 async function saveCurrentBoard() {
   const all = await queryAll();
   const cardsData = [];
@@ -118,7 +118,7 @@ async function saveCurrentBoard() {
   toast(`Saved “${title}” to library`);
 }
 
-/** If the URL carries ?board=<id>, load that saved board into the wall. */
+/** If the URL carries ?board=<id>, load that saved board into the current board. */
 async function maybeRestoreFromUrl() {
   const id = new URLSearchParams(location.search).get("board");
   if (!id) return;
@@ -130,7 +130,7 @@ async function maybeRestoreFromUrl() {
   const ok =
     (await queryAll()).length === 0 ||
     confirm(
-      "Open this board? It will replace the cards currently on your wall."
+      "Open this board? It will replace the pins currently on your board."
     );
   if (!ok) return;
   await restoreBoard(board);

@@ -57,12 +57,12 @@ function build() {
 export function openNew(row, col) {
   current = { id: uuid(), row, col, rowSpan: 1, colSpan: 1, isNew: true };
   ta.value = "";
-  info.textContent = `Preview shows the first ${PREVIEW_MAX} characters on the wall.`;
+  info.textContent = `Preview shows the first ${PREVIEW_MAX} characters on the board.`;
   show();
   ta.focus();
 }
 
-/** Create a note card directly from text (skips the editor dialog). */
+/** Create a note pin directly from text (skips the editor dialog). */
 export async function createFromText(text, row, col) {
   const id = uuid();
   const charCount = text.length;
@@ -108,7 +108,7 @@ function updateInfo(charCount) {
   const cut = Math.max(0, charCount - PREVIEW_MAX);
   info.textContent =
     cut > 0
-      ? `Preview shows first ${PREVIEW_MAX} of ${charCount} chars (${cut} hidden on wall).`
+      ? `Preview shows first ${PREVIEW_MAX} of ${charCount} chars (${cut} hidden on the board).`
       : `Preview shows all ${charCount} chars.`;
 }
 

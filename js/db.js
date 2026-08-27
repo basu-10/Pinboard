@@ -61,7 +61,7 @@ export async function getBlob(id) {
 }
 
 /**
- * Update only the grid geometry (colSpan/rowSpan) of an existing card.
+ * Update only the grid geometry (colSpan/rowSpan) of an existing pin.
  * Used by the interactive resize handles; keeps all other fields intact.
  */
 export async function updateCardSpan(id, colSpan, rowSpan) {
@@ -86,7 +86,7 @@ export async function updateCardSpan(id, colSpan, rowSpan) {
 }
 
 /**
- * Update only the grid position (row/col anchor) of an existing card.
+ * Update only the grid position (row/col anchor) of an existing pin.
  * Used by drag-to-move; keeps all other fields (and span) intact.
  */
 export async function updateCardPosition(id, row, col) {
@@ -111,8 +111,8 @@ export async function updateCardPosition(id, row, col) {
 }
 
 /**
- * Fetch every card's metadata (no windowing). Used by navigation to compute
- * island clusters and the minimap across the whole wall.
+ * Fetch every pin's metadata (no windowing). Used by navigation to compute
+ * island clusters and the minimap across the whole board.
  */
 export async function queryAll() {
   const db = await initDB();
@@ -172,10 +172,10 @@ export async function queryWindow(rowMin, rowMax, colMin, colMax) {
 }
 
 // ---------------------------------------------------------------------------
-// Boards: saved, titled snapshots of the whole wall (all cards + their blobs).
+// Boards: saved, titled snapshots of a board (all pins + their blobs).
 // ---------------------------------------------------------------------------
 
-/** Persist a single board record (with its embedded cards array). */
+/** Persist a single board record (with its embedded pins array). */
 export async function putBoard(board) {
   const db = await initDB();
   return new Promise((resolve, reject) => {
@@ -227,8 +227,8 @@ export async function deleteBoard(id) {
 }
 
 /**
- * Remove every card (metadata + blob) from the live wall, leaving it empty.
- * Used before restoring a board so the working wall holds exactly that board.
+ * Remove every pin (metadata + blob) from the live board, leaving it empty.
+ * Used before restoring a board so the working board holds exactly that board.
  */
 export async function clearWall() {
   const db = await initDB();
@@ -242,15 +242,15 @@ export async function clearWall() {
 }
 
 /**
- * Replace the entire live wall with the cards stored in `board`. The board's
- * cards are written back to the meta + blob stores keyed by their original ids.
+ * Replace the entire live board with the pins stored in `board`. The board's
+ * pins are written back to the meta + blob stores keyed by their original ids.
  */
 export async function restoreBoard(board) {
   if (!board || !Array.isArray(board.cards)) return;
   await clearWall();
   const db = await initDB();
   for (const card of board.cards) {
-    // Each board card is authored by the same DB; reuse its raw put path.
+      // Each board pin is authored by the same DB; reuse its raw put path.
     await new Promise((resolve, reject) => {
       const t = db.transaction([META_STORE, BLOB_STORE], "readwrite");
       t.objectStore(META_STORE).put(card.meta);

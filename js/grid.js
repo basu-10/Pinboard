@@ -67,7 +67,7 @@ export function getView() {
 /**
  * Set the camera position. When `animate` is true the move eases so the user
  * sees a "fly to" rather than a jump. The class is added to both the world
- * (cards) and the viewport (dotted grid) so they travel together.
+ * (pins) and the viewport (dotted grid) so they travel together.
  */
 export function setPan(x, y, animate = false) {
   if (animate) {

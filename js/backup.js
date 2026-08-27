@@ -4,7 +4,7 @@
 //    backup. Blobs are embedded as data URLs so the file is self-contained.
 //  - importBoardJSON : read such a JSON file and add the board back to the
 //    library (a fresh id is assigned to avoid clobbering an existing board).
-//  - exportBoardZip  : flatten every card into a .txt (notes) or .png/.jpg
+//  - exportBoardZip  : flatten every pin into a .txt (notes) or .png/.jpg
 //    (images) file, packaged into a single .zip named after the board.
 
 import { putBoard } from "./db.js";
@@ -134,7 +134,7 @@ export async function importBoardJSON(file) {
   return board;
 }
 
-/** Package every card as a .txt/.png file into a single board-named .zip. */
+/** Package every pin as a .txt/.png file into a single board-named .zip. */
 export async function exportBoardZip(board) {
   const files = [];
   for (const c of board.cards || []) {
@@ -157,7 +157,7 @@ export async function exportBoardZip(board) {
     }
   }
   if (files.length === 0) {
-    throw new Error("This board has no cards to export.");
+    throw new Error("This board has no pins to export.");
   }
   const zip = await makeZip(files);
   downloadBlob(zip, `${safeName(board.title)}.zip`);

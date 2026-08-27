@@ -16,7 +16,7 @@ function ensureGhost(cardsLayer) {
 }
 
 /**
- * Encapsulates one card-drag lifecycle: press → move → commit/tap.
+ * Encapsulates one pin-drag lifecycle: press → move → commit/tap.
  *
  * Constructed on pointerdown. The unified pointerup handler resolves the
  * gesture: no movement past the threshold is a tap (delegated to `onTap`);
@@ -82,7 +82,7 @@ export class DragSession {
     // Move by whole cells relative to where the drag began — never fractional.
     const dCol = Math.round((w.x - this.startWX) / CELL);
     const dRow = Math.round((w.y - this.startWY) / CELL);
-    // No origin: the canvas is unbounded in every direction, so a card may
+    // No origin: the canvas is unbounded in every direction, so a pin may
     // be anchored at any integer row/col, including negatives.
     const col = this.startCol + dCol;
     const row = this.startRow + dRow;
@@ -108,7 +108,7 @@ export class DragSession {
     this.el.classList.remove("card-dragging");
 
     if (!this.moved) {
-      // No movement → this was a tap, open the editor for this card.
+      // No movement → this was a tap, open the editor for this pin.
       this.onTap(this.card);
       return;
     }
