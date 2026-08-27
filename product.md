@@ -97,17 +97,27 @@ tasks), **Weekly Planner** (seven day columns, each with a notes area), and
 **Blank** (an empty canvas). Picking one seeds the board with pre-placed text
 pins so the structure is already there to fill in.
 
-The template headers are color-coded to make the structure instantly readable:
-the Kanban column headers (To Do, In Progress, Done) each get a distinct color,
-but only the headers — the Kanban task cards stay uncolored. In the Weekly
-Planner, each day is its own color and that color fills the entire column:
-both the day's header and its notes area share the same color, so each weekday
-reads as a distinctly colored column. These colors come from the same preset
-pin palette used elsewhere in the app. Applying a template replaces the current
-pins and asks for confirmation first if the board already has content. On an
-empty board the same picker is also offered through a subtle "or start from a
-template" link in the onboarding hint, so the option is discoverable exactly
-when you would use it without adding permanent clutter to a working board.
+The templates are color-coded so structure reads at a glance. Colors come from
+the same preset pin palette used elsewhere in the app:
+
+- **Kanban** — the three column headers (To Do, In Progress, Done) each get a
+  distinct color, but only the headers; the task cards stay uncolored.
+- **Weekly Planner** — each weekday is its own color and that color fills the
+  whole column: the day's header and its notes area share it, so each day reads
+  as a distinctly colored column.
+- **Life Areas** — five focus areas (Health, Career, Learning, Social, Fun),
+  each a colored column (header + notes area) like the weekly planner.
+- **Roadmap** — four phases (Discover, Design, Build, Launch), each a colored
+  column with its milestones.
+- **Brainstorm** — a central "Big Idea" pin with seven colored branch pins
+  arranged radially around it, each a different color.
+- **Blank** — an empty canvas.
+
+Applying a template replaces the current pins and asks for confirmation first if
+the board already has content. On an empty board the same picker is also offered
+through a subtle "or start from a template" link in the onboarding hint, so the
+option is discoverable exactly when you would use it without adding permanent
+clutter to a working board.
 
 ### Panning the canvas
 

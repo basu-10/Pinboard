@@ -63,19 +63,21 @@ the empty-board hint link, and shows a toast when a template is applied.
 
 ### templates.js
 
-Provides pre-built board layouts (Kanban, Weekly Planner, Blank) that seed the
-canvas. Each template is a descriptor that builds an array of text-pin
-definitions; `applyTemplate` clears the wall and writes those pins directly via
-`putCard`, then clears history so the seed reads as a fresh baseline rather than
-a long undo chain. Template pins carry a `color` (a preset hex from the pin palette). For Kanban
-only the three column headers are colored, each a distinct color, while the task
-cards stay uncolored. For the Weekly Planner the entire column shares one color:
-both the day's header and its notes area use the same color, giving each weekday
-a distinctly colored column. `createTemplatePicker` builds a modal listing
-the templates as selectable tiles. The picker is surfaced through a single
-top-bar icon plus an "or start from a template" link that only appears in the
-empty-board hint, so the feature stays discoverable without cluttering a
-populated board.
+Provides pre-built board layouts (Kanban, Weekly Planner, Life Areas, Roadmap,
+Brainstorm, Blank) that seed the canvas. Each template is a descriptor that
+builds an array of text-pin definitions; `applyTemplate` clears the wall and
+writes those pins directly via `putCard`, then clears history so the seed reads
+as a fresh baseline rather than a long undo chain. Template pins carry a `color`
+(a preset hex from the pin palette). For Kanban only the three column headers
+are colored, each a distinct color, while the task cards stay uncolored. For the
+Weekly Planner, Life Areas, and Roadmap the entire column shares one color: the
+header and its notes/milestone area use the same color, giving each column a
+distinct color. The Brainstorm template places a central uncolored "Big Idea"
+pin with seven colored branch pins arranged radially around it, each a different
+color. `createTemplatePicker` builds a modal listing the templates as selectable
+tiles. The picker is surfaced through a single top-bar icon plus an "or start
+from a template" link that only appears in the empty-board hint, so the feature
+stays discoverable without cluttering a populated board.
 
 ### state.js
 

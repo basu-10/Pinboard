@@ -62,6 +62,69 @@ const TEMPLATES = {
     },
   },
 
+  life: {
+    name: "Life Areas",
+    blurb: "Five focus areas, each its own color.",
+    build: () => {
+      const areas = [
+        { title: "Health", color: "#8CE99A" },
+        { title: "Career", color: "#63D2FF" },
+        { title: "Learning", color: "#FFD43B" },
+        { title: "Social", color: "#F783C2" },
+        { title: "Fun", color: "#B197FC" },
+      ];
+      const out = [];
+      areas.forEach((a, i) => {
+        // Whole column shares the area's color, like the weekly planner.
+        out.push({ row: 0, col: i, colSpan: 1, rowSpan: 1, color: a.color, text: `${a.title}\nFocus for this area.` });
+        out.push({ row: 1, col: i, colSpan: 1, rowSpan: 2, color: a.color, text: `${a.title} notes\n\n• \n• \n• ` });
+      });
+      return out;
+    },
+  },
+
+  roadmap: {
+    name: "Roadmap",
+    blurb: "Phased plan — Discover, Design, Build, Launch.",
+    build: () => {
+      const phases = [
+        { title: "Discover", color: "#FF8FA3" },
+        { title: "Design", color: "#FFB27D" },
+        { title: "Build", color: "#63D2FF" },
+        { title: "Launch", color: "#8CE99A" },
+      ];
+      const out = [];
+      phases.forEach((p, i) => {
+        // Whole column shares the phase's color.
+        out.push({ row: 0, col: i, colSpan: 1, rowSpan: 1, color: p.color, text: `${p.title}\nWhat we aim to do.` });
+        out.push({ row: 1, col: i, colSpan: 1, rowSpan: 2, color: p.color, text: `${p.title} milestones\n\n• \n• ` });
+      });
+      return out;
+    },
+  },
+
+  brainstorm: {
+    name: "Brainstorm",
+    blurb: "A central idea with colored branches around it.",
+    build: () => {
+      const center = { row: 4, col: 4 };
+      const branches = [
+        { row: 2, col: 4, color: "#FF8FA3", text: "Idea A\nWhat if…?" },
+        { row: 2, col: 2, color: "#B197FC", text: "Idea B\nWhat if…?" },
+        { row: 4, col: 2, color: "#8CE99A", text: "Idea C\nWhat if…?" },
+        { row: 6, col: 2, color: "#63D2FF", text: "Idea D\nWhat if…?" },
+        { row: 6, col: 4, color: "#FFD43B", text: "Idea E\nWhat if…?" },
+        { row: 6, col: 6, color: "#F783C2", text: "Idea F\nWhat if…?" },
+        { row: 4, col: 6, color: "#FFB27D", text: "Idea G\nWhat if…?" },
+      ];
+      const out = [
+        { ...center, rowSpan: 1, colSpan: 1, text: "My Big Idea\nCentral topic to explore." },
+        ...branches.map((b) => ({ ...b, rowSpan: 1, colSpan: 1 })),
+      ];
+      return out;
+    },
+  },
+
   blank: {
     name: "Blank",
     blurb: "An empty canvas to start from scratch.",
