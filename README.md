@@ -2,7 +2,8 @@
 
 An infinite, pannable wall for placing individual text-note and image cards on a
 dotted grid. Cards are edited in a modal and persist in your browser via
-IndexedDB. Static, no build step, no server.
+IndexedDB. Supports placing cards via toolbar or clipboard paste. Static, no
+build step, no server.
 
 ## Run locally
 
