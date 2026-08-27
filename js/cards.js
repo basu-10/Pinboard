@@ -9,6 +9,7 @@ import {
 import * as editor from "./editor.js";
 import * as image from "./image.js";
 import { DragSession } from "./drag.js";
+import * as history from "./history.js";
 
 let worldEl = null;
 let cellAddEl = null;
@@ -179,6 +180,11 @@ function getTextCached(id) {
     );
   }
   return textCache.get(id);
+}
+
+export function invalidateCache(id) {
+  if (id) textCache.delete(id);
+  else textCache.clear();
 }
 
 async function updateCard(el, m) {
@@ -381,6 +387,7 @@ function onHandleDown(e) {
     el.removeEventListener("pointerup", up);
     if (card.colSpan !== startCS || card.rowSpan !== startRS) {
       await updateCardSpan(card.id, card.colSpan, card.rowSpan);
+      history.recordResizeCard(card.id, startCS, startRS, card.colSpan, card.rowSpan);
       if (handlers.onResize) handlers.onResize(card.id, card.colSpan, card.rowSpan);
     }
   };
@@ -434,6 +441,7 @@ function onCardDown(e) {
       el.style.top = `${toRow * CELL + 8}px`;
       updateOccupancy(c, fromRow, fromCol, toRow, toCol);
       await updateCardPosition(c.id, toRow, toCol);
+      history.recordMoveCard(c.id, fromRow, fromCol, toRow, toCol);
       if (handlers.onMove) handlers.onMove();
     },
     onTap: (c) => {

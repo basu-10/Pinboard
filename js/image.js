@@ -1,4 +1,5 @@
 import { putCard, deleteCard, getMeta, getBlob } from "./db.js";
+import * as history from "./history.js";
 
 let onChange = () => {};
 let overlay = null;
@@ -22,6 +23,11 @@ function getBlobCached(id) {
     );
   }
   return blobCache.get(id);
+}
+
+export function invalidateCache(id) {
+  if (id) blobCache.delete(id);
+  else blobCache.clear();
 }
 
 /**
@@ -138,6 +144,8 @@ export async function open(id) {
     rowSpan: meta.rowSpan || 1,
     colSpan: meta.colSpan || 1,
     isNew: false,
+    oldMeta: meta,
+    oldBlob: blob,
   };
 
   if (lastUrl) URL.revokeObjectURL(lastUrl);
@@ -180,7 +188,9 @@ async function createFromBlob(file, row, col) {
     thumb,
     updatedAt: Date.now(),
   };
-  await putCard(meta, { id, imageBlob: blob });
+  const imageBlob = { id, imageBlob: blob };
+  await putCard(meta, imageBlob);
+  history.recordAddCard(meta, imageBlob);
   onChange(id);
   open(id);
 }
@@ -284,7 +294,14 @@ function ext(type) {
 async function remove() {
   if (!current) return;
   const id = current.id;
+  if (current.isNew) {
+    close();
+    return;
+  }
+  const meta = current.oldMeta;
+  const blob = current.oldBlob;
   await deleteCard(id);
+  history.recordDeleteCard(meta, blob);
   close();
   onChange(id);
 }

@@ -5,6 +5,7 @@ import * as cards from "./cards.js";
 import * as editor from "./editor.js";
 import * as image from "./image.js";
 import * as nav from "./nav.js";
+import * as history from "./history.js";
 
 async function pasteAt(row, col) {
   if (!navigator.clipboard || !navigator.clipboard.read) {
@@ -64,6 +65,8 @@ const world = document.getElementById("world");
 const cellAdd = document.getElementById("cellAdd");
 const boardTitle = document.getElementById("boardTitle");
 const saveBoardBtn = document.getElementById("saveBoard");
+const undoBtn = document.getElementById("undoBtn");
+const redoBtn = document.getElementById("redoBtn");
 
 function toast(msg) {
   let el = document.querySelector(".toast");
@@ -139,10 +142,17 @@ async function main() {
   await initDB();
   await maybeRestoreFromUrl();
 
-  const onChange = () => {
+  const onChange = (id) => {
+    if (id) {
+      cards.invalidateCache(id);
+      image.invalidateCache(id);
+    }
     cards.renderCurrent();
     nav.recompute();
   };
+
+  history.init({ onChange });
+  history.setHistoryButtons(undoBtn, redoBtn);
 
   editor.init({ onChange });
   image.init({ onChange });
@@ -173,7 +183,21 @@ async function main() {
       .finally(() => (saveBoardBtn.disabled = false));
   });
 
+  undoBtn.addEventListener("click", () => history.undo());
+  redoBtn.addEventListener("click", () => history.redo());
+
   window.addEventListener("keydown", (e) => {
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && e.key.toLowerCase() === "z" && !e.shiftKey) {
+      e.preventDefault();
+      history.undo();
+      return;
+    }
+    if (mod && (e.key.toLowerCase() === "y" || (e.key.toLowerCase() === "z" && e.shiftKey))) {
+      e.preventDefault();
+      history.redo();
+      return;
+    }
     const step = state.CELL;
     const map = {
       ArrowLeft: [-step, 0],

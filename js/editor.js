@@ -1,4 +1,5 @@
 import { PREVIEW_MAX, putCard, deleteCard, getMeta, getBlob } from "./db.js";
+import * as history from "./history.js";
 
 let onChange = () => {};
 let overlay = null;
@@ -79,6 +80,7 @@ export async function createFromText(text, row, col) {
     updatedAt: Date.now(),
   };
   await putCard(meta, { id, text });
+  history.recordAddCard(meta, { id, text });
   onChange(id);
 }
 
@@ -93,6 +95,8 @@ export async function open(id) {
     rowSpan: meta.rowSpan || 1,
     colSpan: meta.colSpan || 1,
     isNew: false,
+    oldMeta: meta,
+    oldBlob: blob,
   };
   ta.value = blob ? blob.text : "";
   updateInfo(meta.charCount || 0);
@@ -126,7 +130,13 @@ async function save() {
     thumb: "",
     updatedAt: Date.now(),
   };
-  await putCard(meta, { id, text });
+  const blob = { id, text };
+  await putCard(meta, blob);
+  if (current.isNew) {
+    history.recordAddCard(meta, blob);
+  } else {
+    history.recordEditCard(current.oldMeta, current.oldBlob, meta, blob);
+  }
   close();
   onChange(id);
 }
@@ -134,7 +144,14 @@ async function save() {
 async function remove() {
   if (!current) return;
   const id = current.id;
+  if (current.isNew) {
+    close();
+    return;
+  }
+  const meta = current.oldMeta;
+  const blob = current.oldBlob;
   await deleteCard(id);
+  history.recordDeleteCard(meta, blob);
   close();
   onChange(id);
 }
