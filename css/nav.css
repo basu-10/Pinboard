@@ -1,0 +1,121 @@
+/* --- camera navigation: prev/next group bar, minimap, lost pill --- */
+
+/* shared "fly to" easing, applied only to programmatic pans */
+.world.animating,
+.viewport.animating {
+  transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
+    background-position 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* --- prev / next group bar (bottom-left) --- */
+.nav-bar {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, var(--base-2), var(--base-3));
+  box-shadow: var(--shadow-raised);
+}
+
+.nav-bar button {
+  padding: 4px 12px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.nav-count {
+  min-width: 54px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- minimap (bottom-right) --- */
+.minimap {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 30;
+  width: 220px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, var(--base-2), var(--base-3));
+  box-shadow: var(--shadow-raised);
+}
+
+.minimap-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--accent-strong);
+}
+
+.minimap-total {
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+.minimap-canvas {
+  position: relative;
+  width: 100%;
+  height: 150px;
+  border-radius: var(--radius-sm);
+  background: var(--base-3);
+  box-shadow: var(--shadow-inset);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.mm-island {
+  position: absolute;
+  border-radius: 3px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-faint);
+  transition: background 0.15s ease;
+}
+
+.mm-island:hover {
+  background: color-mix(in srgb, var(--accent) 35%, var(--base));
+}
+
+.mm-island.current {
+  background: var(--accent);
+  border-color: var(--accent-strong);
+}
+
+.mm-view {
+  position: absolute;
+  border: 1.5px solid var(--accent-strong);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  pointer-events: none;
+}
+
+/* --- lost pill (top-center) --- */
+.lost-pill {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-strong);
+  border-radius: 999px;
+  background: linear-gradient(145deg, var(--base-2), var(--base-3));
+  box-shadow: var(--shadow-raised), inset 0 0 0 1px var(--accent-soft);
+}
+
+.lost-pill[hidden] {
+  display: none;
+}

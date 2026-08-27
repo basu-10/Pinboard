@@ -81,6 +81,29 @@ export async function updateCardSpan(id, colSpan, rowSpan) {
   });
 }
 
+/**
+ * Fetch every card's metadata (no windowing). Used by navigation to compute
+ * island clusters and the minimap across the whole wall.
+ */
+export async function queryAll() {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const out = [];
+    const t = db.transaction(META_STORE);
+    const cur = t.objectStore(META_STORE).openCursor();
+    cur.onsuccess = () => {
+      const c = cur.result;
+      if (!c) {
+        resolve(out);
+        return;
+      }
+      out.push(c.value);
+      c.continue();
+    };
+    cur.onerror = () => reject(cur.error);
+  });
+}
+
 export async function deleteCard(id) {
   const db = await initDB();
   return new Promise((resolve, reject) => {

@@ -3,6 +3,8 @@ import { state, computeWindow } from "./state.js";
 let viewportEl = null;
 let worldEl = null;
 let onWindowChange = null;
+let cameraCb = null;
+let animTimer = null;
 let dragging = false;
 let moved = false;
 let dragStart = null;
@@ -44,6 +46,45 @@ function applyPan() {
 
   Object.assign(state, w);
   if (changed && onWindowChange) onWindowChange(w);
+  if (cameraCb) cameraCb();
+}
+
+/** Register a listener fired after every camera (pan) change. */
+export function subscribe(cb) {
+  cameraCb = cb;
+}
+
+/** Current camera + viewport geometry. */
+export function getView() {
+  return {
+    panX: state.panX,
+    panY: state.panY,
+    vw: state.viewportW,
+    vh: state.viewportH,
+  };
+}
+
+/**
+ * Set the camera position. When `animate` is true the move eases so the user
+ * sees a "fly to" rather than a jump. The class is added to both the world
+ * (cards) and the viewport (dotted grid) so they travel together.
+ */
+export function setPan(x, y, animate = false) {
+  if (animate) {
+    worldEl.classList.add("animating");
+    viewportEl.classList.add("animating");
+  }
+  state.panX = x;
+  state.panY = y;
+  applyPan();
+  if (animate) {
+    clearTimeout(animTimer);
+    animTimer = setTimeout(() => {
+      worldEl.classList.remove("animating");
+      viewportEl.classList.remove("animating");
+      if (cameraCb) cameraCb(); // re-sync indicators once motion settles
+    }, 480);
+  }
 }
 
 export function panBy(dx, dy) {
